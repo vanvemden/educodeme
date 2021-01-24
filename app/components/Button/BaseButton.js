@@ -3,13 +3,7 @@ import T from 'prop-types';
 import styled from 'styled-components';
 import Button from '@material-ui/core/Button';
 
-import theme from '../../themes';
-
 const StyledBaseButton = styled(Button)`
-  &:active {
-    box-shadow: green;
-  }
-  background-color: ${theme.colorPrimary};
   margin: 1rem;
 `;
 
