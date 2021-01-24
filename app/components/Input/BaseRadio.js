@@ -14,14 +14,12 @@ import theme from '../../themes';
 
 const StyledBaseRadio = styled(Radio)``;
 
-function BaseRadio({ onClick, label, ...restProps }) {
-  return <StyledBaseRadio onClick={onClick} {...restProps} />;
+function BaseRadio({ ...restProps }) {
+  return <StyledBaseRadio {...restProps} />;
 }
 
 BaseRadio.defaultProps = {};
 
-BaseRadio.propTypes = {
-  onClick: T.func.isRequired,
-};
+BaseRadio.propTypes = {};
 
 export default BaseRadio;

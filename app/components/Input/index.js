@@ -7,5 +7,17 @@ import Range from './BaseRange';
 import Radio from './BaseRadio';
 import Search from './BaseSearch';
 import Text from './BaseText';
+import Textarea from './BaseTextArea';
 
-export { Checkbox, Date, Email, Number, Password, Range, Radio, Search, Text };
+export {
+  Checkbox,
+  Date,
+  Email,
+  Number,
+  Password,
+  Range,
+  Radio,
+  Search,
+  Text,
+  Textarea,
+};
