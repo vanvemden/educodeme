@@ -21,7 +21,9 @@ function BaseButton({ label, onClick, ...restProps }) {
   );
 }
 
-BaseButton.defaultProps = {};
+BaseButton.defaultProps = {
+  onClick: () => {},
+};
 
 BaseButton.propTypes = {
   color: T.string,
