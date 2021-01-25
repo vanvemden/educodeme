@@ -10,7 +10,7 @@ import T from 'prop-types';
 import styled from 'styled-components';
 import Slider from '@material-ui/core/Slider';
 
-import theme from '../../themes';
+// import theme from '../../themes';
 
 const StyledBaseRange = styled(Slider)``;
 

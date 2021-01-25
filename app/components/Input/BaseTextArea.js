@@ -10,16 +10,21 @@ import T from 'prop-types';
 import styled from 'styled-components';
 import Textarea from '@material-ui/core/TextareaAutosize';
 
-import theme from '../../themes';
+// import theme from '../../themes';
 
 const StyledBaseTextarea = styled(Textarea)``;
 
-function BaseTextarea({ onClick, ...restProps }) {
-  return <StyledBaseTextarea id="textarea" {...restProps} />;
+function BaseTextarea({ value, ...restProps }) {
+  return <StyledBaseTextarea id="textarea" value={value} {...restProps} />;
 }
 
 BaseTextarea.defaultProps = {};
 
-BaseTextarea.propTypes = {};
+BaseTextarea.propTypes = {
+  rows: T.oneOfType([T.number, T.string]),
+  rowsMax: T.oneOfType([T.number, T.string]),
+  rowsMin: T.oneOfType([T.number, T.string]),
+  value: T.string.isRequired,
+};
 
 export default BaseTextarea;
