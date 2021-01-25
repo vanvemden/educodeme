@@ -8,7 +8,7 @@ export function Editor({
   height = 100,
   language = 'javascript',
   theme = 'light',
-  value = 'Code goes here',
+  value,
   width = '100%',
 }) {
   return (
@@ -28,7 +28,7 @@ Editor.propTypes = {
   height: PropTypes.number,
   language: PropTypes.string,
   theme: PropTypes.string,
-  value: PropTypes.string,
+  value: PropTypes.string.isRequired,
   width: PropTypes.number,
 };
 
