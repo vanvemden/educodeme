@@ -12,10 +12,10 @@ import List from '@material-ui/core/List';
 
 import theme from '../../themes';
 
-const StyledBaseOrderedList = styled(List)``;
+const Wrapper = styled(List)``;
 
 function BaseOrderedList(props) {
-  return <StyledBaseOrderedList>{props.children}</StyledBaseOrderedList>;
+  return <Wrapper>{props.children}</Wrapper>;
 }
 
 BaseOrderedList.defaultProps = {};

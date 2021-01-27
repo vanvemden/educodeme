@@ -30,8 +30,8 @@ function BaseCondition({
 }
 
 BaseCondition.propTypes = {
-  ComponentOnTrue: T.oneOfType([T.func, T.element, T.object]),
-  ComponentOnFalse: T.oneOfType([T.func, T.element, T.object]),
+  ComponentOnTrue: T.string,
+  ComponentOnFalse: T.string,
   propsToPassDown: T.object,
   ifTrue: T.bool.isRequired,
 };

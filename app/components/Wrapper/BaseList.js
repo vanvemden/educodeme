@@ -12,10 +12,10 @@ import List from '@material-ui/core/List';
 
 import theme from '../../themes';
 
-const StyledBaseList = styled(List)``;
+const Wrapper = styled(List)``;
 
 function BaseList(props) {
-  return <StyledBaseList>{props.children}</StyledBaseList>;
+  return <Wrapper>{props.children}</Wrapper>;
 }
 
 BaseList.defaultProps = {};

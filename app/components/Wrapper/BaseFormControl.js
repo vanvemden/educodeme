@@ -12,10 +12,10 @@ import FormControl from '@material-ui/core/FormControl';
 
 import theme from '../../themes';
 
-const StyledBaseFormControl = styled(FormControl)``;
+const Wrapper = styled(FormControl)``;
 
 function BaseFormControl(props) {
-  return <StyledBaseFormControl>{props.children}</StyledBaseFormControl>;
+  return <Wrapper>{props.children}</Wrapper>;
 }
 
 BaseFormControl.defaultProps = {};

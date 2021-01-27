@@ -12,10 +12,10 @@ import Container from '@material-ui/core/Container';
 
 import theme from '../../themes';
 
-const StyledBaseContainerRow = styled(Container)``;
+const Wrapper = styled(Container)``;
 
 function BaseContainerRow(props) {
-  return <StyledBaseContainerRow>{props.children}</StyledBaseContainerRow>;
+  return <Wrapper>{props.children}</Wrapper>;
 }
 
 BaseContainerRow.defaultProps = {};

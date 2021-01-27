@@ -12,10 +12,10 @@ import ListItem from '@material-ui/core/ListItem';
 
 import theme from '../../themes';
 
-const StyledBaseListItem = styled(ListItem)``;
+const Wrapper = styled(ListItem)``;
 
 function BaseListItem(props) {
-  return <StyledBaseListItem>{props.children}</StyledBaseListItem>;
+  return <Wrapper>{props.children}</Wrapper>;
 }
 
 BaseListItem.defaultProps = {};
