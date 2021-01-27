@@ -6,6 +6,7 @@ import { Spinner } from '../Output';
 
 const BaseAsyncData = ({
   asyncData,
+  className,
   component,
   errors,
   isLoading,
@@ -19,7 +20,13 @@ const BaseAsyncData = ({
   }
   if (!isEmpty(asyncData)) {
     const ComponentToRender = component;
-    return <ComponentToRender data={asyncData} {...propsToPassDown} />;
+    return (
+      <ComponentToRender
+        className={className}
+        data={asyncData}
+        {...propsToPassDown}
+      />
+    );
   }
   return 'Nothing was rendered in AsyncData component!';
 };

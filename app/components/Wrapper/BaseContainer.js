@@ -12,10 +12,13 @@ import Container from '@material-ui/core/Container';
 
 import theme from '../../themes';
 
-const Wrapper = styled(Container)``;
+const Wrapper = styled(Container)`
+  background-color: green;
+  padding: 0.25rem;
+`;
 
-function BaseContainer(props) {
-  return <Wrapper>{props.children}</Wrapper>;
+function BaseContainer({ className, children }) {
+  return <Wrapper className={className}>{children}</Wrapper>;
 }
 
 BaseContainer.defaultProps = {};

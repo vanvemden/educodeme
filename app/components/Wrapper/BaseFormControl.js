@@ -14,8 +14,8 @@ import theme from '../../themes';
 
 const Wrapper = styled(FormControl)``;
 
-function BaseFormControl(props) {
-  return <Wrapper>{props.children}</Wrapper>;
+function BaseFormControl({ className, children }) {
+  return <Wrapper className={className}>{children}</Wrapper>;
 }
 
 BaseFormControl.defaultProps = {};

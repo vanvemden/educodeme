@@ -12,10 +12,15 @@ import Container from '@material-ui/core/Container';
 
 import theme from '../../themes';
 
-const Wrapper = styled(Container)``;
+const Wrapper = styled(Container)`
+  padding: 0.5rem 0;
+  background-color: orange;
+  display: flex;
+  flex-direction: column; // toggle: row
+`;
 
-function BaseContainerRow(props) {
-  return <Wrapper>{props.children}</Wrapper>;
+function BaseContainerRow({ children, className }) {
+  return <Wrapper className={className}>{children}</Wrapper>;
 }
 
 BaseContainerRow.defaultProps = {};

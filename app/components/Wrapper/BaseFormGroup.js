@@ -14,8 +14,8 @@ import theme from '../../themes';
 
 const Wrapper = styled(FormGroup)``;
 
-function BaseFormGroup(props) {
-  return <Wrapper>{props.children}</Wrapper>;
+function BaseFormGroup({ className, children }) {
+  return <Wrapper className={className}>{children}</Wrapper>;
 }
 
 BaseFormGroup.defaultProps = {};

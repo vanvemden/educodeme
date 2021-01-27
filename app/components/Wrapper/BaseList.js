@@ -14,8 +14,8 @@ import theme from '../../themes';
 
 const Wrapper = styled(List)``;
 
-function BaseList(props) {
-  return <Wrapper>{props.children}</Wrapper>;
+function BaseList({ className, children }) {
+  return <Wrapper className={className}>{children}</Wrapper>;
 }
 
 BaseList.defaultProps = {};
