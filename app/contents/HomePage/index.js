@@ -6,7 +6,8 @@
  */
 
 import React from 'react';
-import CodeEditor from 'containers/CodeEditor';
+
+import HostEditorCard from '../HostEditorCard';
 
 import {
   Checkbox,
@@ -31,13 +32,12 @@ import {
   OrderedList,
   ListItem,
 } from '../../components/Wrapper';
-import { Spinner } from '../../components/Input';
 
 export default function HomePage() {
   return (
     <div>
-      <h1>Test</h1>
-      <CodeEditor isLoading={!!false} hasError={!!false} />
+      <h1>HostEditorCard</h1>
+      <HostEditorCard />
       <h2>Wrappers</h2>
       <h3>Container Wrapper</h3>
       <Container>
