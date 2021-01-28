@@ -1,35 +1,23 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import PropTypes, { number, string } from 'prop-types';
 import ControlledEditor from '@monaco-editor/react';
 
 import { EditorWrapper } from './styles';
-
-export function Editor({
-  height = 100,
-  language = 'javascript',
-  theme = 'light',
-  value,
-  width = '100%',
-}) {
+export function Editor({ value, ...restProps }) {
   return (
     <EditorWrapper>
-      <ControlledEditor
-        height={height}
-        language={language}
-        theme={theme}
-        value={value}
-        width={width}
-      />
+      <ControlledEditor value={value} {...restProps} />
     </EditorWrapper>
   );
 }
 
 Editor.propTypes = {
-  height: PropTypes.number,
+  height: PropTypes.string,
   language: PropTypes.string,
   theme: PropTypes.string,
   value: PropTypes.string.isRequired,
-  width: PropTypes.number,
+  width: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
 };
 
 export default Editor;
