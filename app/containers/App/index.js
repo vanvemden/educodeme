@@ -11,9 +11,8 @@ import React from 'react';
 import { Switch, Route } from 'react-router-dom';
 import { StylesProvider } from '@material-ui/core/styles';
 
-import HomePage from 'containers/HomePage/Loadable';
-import NotFoundPage from 'containers/NotFoundPage/Loadable';
-
+import HomePage from 'contents/HomePage/Loadable';
+import NotFoundPage from 'contents/NotFoundPage/Loadable';
 import GlobalStyle from '../../global-styles';
 
 export default function App() {
