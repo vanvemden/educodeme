@@ -15,7 +15,7 @@ const selectCodeEditorDomain = state =>
 const makeSelectCodeEditor = () =>
   createSelector(
     selectCodeEditorDomain,
-    codeEditorState => codeEditorState.value,
+    codeEditorState => codeEditorState,
   );
 
 export { selectCodeEditorDomain, makeSelectCodeEditor };

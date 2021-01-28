@@ -1,48 +1,48 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import T from 'prop-types';
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
-import { Editor, ResetButton, StartButton, StopButton } from './components';
+import { codeEditorOnChange } from './actions';
+import { Editor, Container } from './components';
 import { makeSelectCodeEditor } from './selectors';
-import { codeEditorReset } from './actions';
 
 export const CodeEditor = ({
-  dispatchReset,
-  isLoading,
+  containerWidth,
   hasError,
+  isLoading,
   ...restProps
 }) => {
-  const handleReset = () => {
-    dispatchReset();
-  };
-
   return (
-    <Fragment>
+    <Container width={containerWidth}>
       <Editor {...restProps} />
-      <StartButton label="PRIMARY BUTTON" />
-      <StopButton label="SECONDARY BUTTON" />
-      <ResetButton label="RESET BUTTON" onClick={handleReset} />
-    </Fragment>
+    </Container>
   );
 };
 
 CodeEditor.propTypes = {
-  hasError: T.bool.isRequired,
+  containerWidth: T.string.isRequired,
+  hasError: T.bool,
   isLoading: T.bool.isRequired,
+  onChange: T.func,
+  onReset: T.func,
   value: T.string.isRequired,
-  dispatchReset: T.func,
+  width: T.string,
 };
 
 const mapStateToProps = createSelector(
   makeSelectCodeEditor(),
-  value => ({
+  ({ value, height, width, theme, options }) => ({
+    height,
+    options,
+    theme,
     value,
+    width,
   }),
 );
 
 const mapDispatchToProps = dispatch => ({
-  dispatchReset: () => dispatch(codeEditorReset()),
+  onChange: value => dispatch(codeEditorOnChange({ value })),
 });
 
 export default connect(

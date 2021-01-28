@@ -1,23 +1,8 @@
-import {
-  CODE_EDITOR_RESET,
-  CODE_EDITOR_START,
-  CODE_EDITOR_STOP,
-} from './constants';
+import { CODE_EDITOR_ON_CHANGE } from './constants';
 
-export function codeEditorReset() {
+export function codeEditorOnChange({ value }) {
   return {
-    type: CODE_EDITOR_RESET,
-  };
-}
-
-export function codeEditorStart() {
-  return {
-    type: CODE_EDITOR_START,
-  };
-}
-
-export function codeEditorStop() {
-  return {
-    type: CODE_EDITOR_STOP,
+    payload: { value },
+    type: CODE_EDITOR_ON_CHANGE,
   };
 }
