@@ -8,10 +8,12 @@ import { connectRouter } from 'connected-react-router';
 import history from 'utils/history';
 import languageProviderReducer from 'containers/LanguageProvider/reducer';
 import codeEditorReducer from 'containers/CodeEditor/reducer';
+import textEditorReducer from 'containers/TextEditor/reducer';
 
 const containers = combineReducers({
   codeEditor: codeEditorReducer,
   languageProvider: languageProviderReducer,
+  textEditor: textEditorReducer,
 });
 
 /**
