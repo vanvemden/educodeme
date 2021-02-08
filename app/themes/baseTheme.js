@@ -1,9 +1,9 @@
 export const baseColors = {
   colorBackground: 'black',
-  colorPrimary: 'green',
-  colorPrimaryAlt: 'pink',
-  colorSecondary: 'blue',
-  colorSecondaryAlt: 'cyan',
+  colorPrimary: '#3b1461',
+  colorPrimaryAlt: '#ef9d10f',
+  colorSecondary: '#6b7b8c',
+  colorSecondaryAlt: 'ef9d10f',
   colorError: 'red',
   colorLoading: 'yellow',
 };

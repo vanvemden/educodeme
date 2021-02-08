@@ -1,8 +1,6 @@
 import baseTheme from './baseTheme';
 
-const lightColors = {
-  colorPrimary: 'yellow',
-};
+const lightColors = {};
 
 const lightFonts = {};
 
