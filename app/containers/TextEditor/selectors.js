@@ -6,7 +6,7 @@ import { textEditorInitialState } from './reducer';
  * Direct selector to the TextEditor state domain
  */
 const selectTextEditorDomain = state =>
-  state.containers.textEditor || textEditorInitialState;
+  state.textEditor || textEditorInitialState;
 
 /**
  * Memoized selectors
@@ -18,4 +18,14 @@ const makeSelectTextEditor = () =>
     textEditorState => textEditorState,
   );
 
-export { selectTextEditorDomain, makeSelectTextEditor };
+const makeSelectTextEditorValueOfKey = key =>
+  createSelector(
+    selectTextEditorDomain,
+    codeEditorState => codeEditorState[key],
+  );
+
+export {
+  makeSelectTextEditor,
+  makeSelectTextEditorValueOfKey,
+  selectTextEditorDomain,
+};

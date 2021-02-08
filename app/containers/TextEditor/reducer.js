@@ -1,13 +1,19 @@
 import produce from 'immer';
 
-import { TEXT_EDITOR_ON_CHANGE } from './constants';
+import {
+  TEXT_EDITOR_ON_CHANGE_FROM_WEBSOCKET,
+  TEXT_EDITOR_ON_CHANGE_PUBLISH_FAILURE,
+  TEXT_EDITOR_ON_CHANGE_PUBLISH_SUCCESS,
+  TEXT_EDITOR_ON_CHANGE,
+} from './constants';
 
 export const textEditorInitialState = {
   automaticLayout: true,
   hasErrors: false,
   height: '200px',
-  isHosting: true,
+  isHost: true,
   isLoading: false,
+  isSending: false,
   language: 'plaintext',
   options: {
     cursorStyle: '',
@@ -19,7 +25,7 @@ export const textEditorInitialState = {
     },
   },
   theme: 'vs-light',
-  value: '/** Text Editor **/',
+  value: '',
   width: '100%',
 };
 
@@ -29,34 +35,16 @@ const textEditorReducer = (state = textEditorInitialState, action) =>
     switch (action.type) {
       case TEXT_EDITOR_ON_CHANGE:
         draft.value = action.payload.value;
+        draft.isSending = draft.isHost;
         break;
-
-      default:
-        // //   'app/containers/CodeEditor/components/StartButton/ASYNC';
-        // console.log(action.type);
-        // const [
-        //   app,
-        //   parentType,
-        //   parent,
-        //   childType,
-        //   child,
-        //   ...actionType
-        // ] = action.type.split('/');
-        // console.log(
-        //   'The action.type value split:',
-        //   app,
-        //   parentType,
-        //   parent,
-        //   childType,
-        //   child,
-        //   actionType,
-        // );
-        // console.log('From draft:', draft[parentType][parent]);
-        // // switch (action) {
-        // //   case 'ASYNC':
-        // //     // Check if the object
-        // //     break;
-        // // }
+      case TEXT_EDITOR_ON_CHANGE_FROM_WEBSOCKET:
+        draft.value = action.payload.value;
+        break;
+      case TEXT_EDITOR_ON_CHANGE_PUBLISH_FAILURE:
+        draft.isSending = false;
+        break;
+      case TEXT_EDITOR_ON_CHANGE_PUBLISH_SUCCESS:
+        draft.isSending = false;
         break;
     }
   });
