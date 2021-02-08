@@ -1,8 +1,15 @@
 /* eslint consistent-return:0 import/order:0 */
 
 const express = require('express');
-const logger = require('./logger');
+const r = require('rethinkdb');
 
+const {
+  onPublishAction,
+  onPublishSession,
+  onSubscribeToSession,
+} = require('./helpers');
+
+const logger = require('./logger');
 const argv = require('./argv');
 const port = require('./port');
 const setup = require('./middlewares/frontendMiddleware');
@@ -13,6 +20,57 @@ const ngrok =
     : false;
 const { resolve } = require('path');
 const app = express();
+
+// Socket IO with CORS
+const ioPort = 8000;
+const server = require('http').createServer(app);
+const io = require('socket.io')(server, {
+  cors: {
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+  },
+});
+io.listen(ioPort);
+console.log('Socket-io listening on port ', ioPort);
+
+// RethinkDB
+r.connect({
+  host: 'localhost',
+  port: 28015,
+  db: 'educodeme',
+}).then(connection => {
+  io.on('connection', client => {
+    client.on('publishAction', ({ payload, sessionId, type }, callback) =>
+      onPublishAction({
+        callback,
+        connection,
+        payload,
+        sessionId,
+        type,
+      }),
+    );
+
+    client.on('publishSession', ({ id, topic, username }, callback) =>
+      onPublishSession({
+        callback,
+        connection,
+        id,
+        topic,
+        username,
+      }),
+    );
+
+    client.on('subscribeToSession', ({ id }, callback) => {
+      console.log("client.on('subscribeToSession'", id);
+      onSubscribeToSession({
+        callback,
+        client,
+        connection,
+        id,
+      });
+    });
+  });
+});
 
 // If you need a backend, e.g. an API, add your custom backend-specific middleware here
 // app.use('/api', myApi);
