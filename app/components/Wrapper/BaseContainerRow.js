@@ -14,9 +14,6 @@ import theme from '../../themes';
 
 const Wrapper = styled(Container)`
   padding: 0.5rem 0;
-  background-color: orange;
-  display: flex;
-  flex-direction: column; // toggle: row
 `;
 
 function BaseContainerRow({ children, className }) {

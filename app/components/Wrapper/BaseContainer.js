@@ -13,7 +13,6 @@ import Container from '@material-ui/core/Container';
 import theme from '../../themes';
 
 const Wrapper = styled(Container)`
-  background-color: green;
   padding: 0.25rem;
 `;
 
