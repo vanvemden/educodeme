@@ -7,22 +7,15 @@ import { connectRouter } from 'connected-react-router';
 
 import history from 'utils/history';
 import languageProviderReducer from 'containers/LanguageProvider/reducer';
-import codeEditorReducer from 'containers/CodeEditor/reducer';
-import textEditorReducer from 'containers/TextEditor/reducer';
-
-const containers = combineReducers({
-  codeEditor: codeEditorReducer,
-  languageProvider: languageProviderReducer,
-  textEditor: textEditorReducer,
-});
 
 /**
- * Merges root level reducers
+ * Merges the main reducer with the router state and dynamically injected reducers
  */
-export default function createReducer() {
+export default function createReducer(injectedReducers = {}) {
   const rootReducer = combineReducers({
-    containers,
+    language: languageProviderReducer,
     router: connectRouter(history),
+    ...injectedReducers,
   });
 
   return rootReducer;
