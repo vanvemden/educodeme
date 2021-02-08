@@ -1,16 +1,19 @@
 import produce from 'immer';
 
 import {
-  CODE_EDITOR_ON_CHANGE,
   CODE_EDITOR_ON_CHANGE_FROM_WEBSOCKET,
+  CODE_EDITOR_ON_CHANGE_PUBLISH_FAILURE,
+  CODE_EDITOR_ON_CHANGE_PUBLISH_SUCCESS,
+  CODE_EDITOR_ON_CHANGE,
 } from './constants';
 
 export const codeEditorInitialState = {
   automaticLayout: true,
   hasErrors: false,
   height: '200px',
-  isHosting: true,
+  isHost: true,
   isLoading: false,
+  isSending: false,
   language: 'javascript',
   options: {
     cursorStyle: 'block',
@@ -22,7 +25,8 @@ export const codeEditorInitialState = {
     },
   },
   theme: 'vs-dark',
-  value: '/** Code Editor **/',
+  value: '',
+  width: '100%',
 };
 
 /* eslint-disable default-case, no-param-reassign */
@@ -31,37 +35,16 @@ const codeEditorReducer = (state = codeEditorInitialState, action) =>
     switch (action.type) {
       case CODE_EDITOR_ON_CHANGE:
         draft.value = action.payload.value;
+        draft.isSending = draft.isHost;
         break;
       case CODE_EDITOR_ON_CHANGE_FROM_WEBSOCKET:
         draft.value = action.payload.value;
         break;
-
-      default:
-        // //   'app/containers/CodeEditor/components/StartButton/ASYNC';
-        // console.log(action.type);
-        // const [
-        //   app,
-        //   parentType,
-        //   parent,
-        //   childType,
-        //   child,
-        //   ...actionType
-        // ] = action.type.split('/');
-        // console.log(
-        //   'The action.type value split:',
-        //   app,
-        //   parentType,
-        //   parent,
-        //   childType,
-        //   child,
-        //   actionType,
-        // );
-        // console.log('From draft:', draft[parentType][parent]);
-        // // switch (action) {
-        // //   case 'ASYNC':
-        // //     // Check if the object
-        // //     break;
-        // // }
+      case CODE_EDITOR_ON_CHANGE_PUBLISH_FAILURE:
+        draft.isSending = false;
+        break;
+      case CODE_EDITOR_ON_CHANGE_PUBLISH_SUCCESS:
+        draft.isSending = false;
         break;
     }
   });

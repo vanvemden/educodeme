@@ -3,19 +3,33 @@ import T from 'prop-types';
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 
+import { useInjectReducer } from 'utils/injectReducer';
+
 import { codeEditorOnChange } from './actions';
-import { Editor, Container } from './components';
+import { Editor, Container, InputLabel } from './components';
+import reducer from './reducer';
 import { makeSelectCodeEditor } from './selectors';
+
+import { Condition } from '../../components/Wrapper';
 
 export const CodeEditor = ({
   containerWidth,
   hasError,
   isLoading,
+  isSending,
   ...restProps
 }) => {
+  useInjectReducer({ key: 'codeEditor', reducer });
+
   return (
     <Container width={containerWidth}>
+      <InputLabel>Code</InputLabel>
       <Editor {...restProps} />
+      <Condition
+        ifTrue={isSending}
+        ComponentOnTrue={<InputLabel>sending</InputLabel>}
+        ComponentOnFalse={<InputLabel>idle</InputLabel>}
+      />
     </Container>
   );
 };
@@ -23,21 +37,22 @@ export const CodeEditor = ({
 CodeEditor.propTypes = {
   containerWidth: T.string.isRequired,
   hasError: T.bool,
-  isLoading: T.bool.isRequired,
+  isLoading: T.bool,
+  isSending: T.bool,
   onChange: T.func,
   onReset: T.func,
   value: T.string.isRequired,
-  width: T.string,
 };
 
 const mapStateToProps = createSelector(
   makeSelectCodeEditor(),
-  ({ value, height, width, theme, options }) => ({
+  ({ height, isLoading, isSending, options, theme, value }) => ({
     height,
+    isSending,
+    isLoading,
     options,
     theme,
     value,
-    width,
   }),
 );
 
