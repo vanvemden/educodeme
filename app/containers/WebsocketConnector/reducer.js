@@ -8,6 +8,8 @@ import {
   WEBSOCKET_CONNECTOR_DISCONNECT,
   WEBSOCKET_CONNECTOR_GENERATE_ID,
   WEBSOCKET_CONNECTOR_ID_ONCHANGE,
+  WEBSOCKET_CONNECTOR_PUBLISH_ACTION_FAILURE,
+  WEBSOCKET_CONNECTOR_PUBLISH_ACTION_SUCCESS,
   WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS,
   WEBSOCKET_CONNECTOR_RESET,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_FAILURE,
@@ -18,12 +20,14 @@ import {
 } from './constants';
 
 export const websocketConnectorInitialState = {
+  actions: [],
+  connectedUsers: [],
   connectionState: 'disconnected',
+  errors: [],
   id: uuidv4(),
   isAutopilotOn: false,
   isConnected: false,
   isHost: true,
-  connectedUsers: [],
   token: '',
   topic: '',
   username: '',
@@ -36,6 +40,18 @@ const websocketConnectorReducer = (
 ) =>
   produce(state, draft => {
     switch (action.type) {
+      case WEBSOCKET_CONNECTOR_PUBLISH_ACTION_FAILURE:
+        draft.actions.push({
+          type: action.payload.type,
+          payload: action.payload.payload,
+        });
+        break;
+      case WEBSOCKET_CONNECTOR_PUBLISH_ACTION_SUCCESS:
+        draft.actions.push({
+          type: action.payload.type,
+          payload: action.payload.payload,
+        });
+        break;
       case WEBSOCKET_CONNECTOR_RESET:
         draft = websocketConnectorInitialState;
         break;
@@ -60,19 +76,14 @@ const websocketConnectorReducer = (
         draft.id = action.payload.value;
         break;
       case WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS:
+        draft.isHost = true;
         draft.token = action.payload.token;
         break;
       case WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_FAILURE:
-        console.log(
-          'in reducer WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_FAILURE',
-          action,
-        );
+        draft.errors = action.payload.errors;
         break;
       case WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS:
-        console.log(
-          'in reducer WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS',
-          action,
-        );
+        draft.isHost = false;
         break;
       case WEBSOCKET_CONNECTOR_TOPIC_ONCHANGE:
         draft.topic = action.payload.value;

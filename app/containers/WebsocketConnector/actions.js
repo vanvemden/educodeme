@@ -1,4 +1,6 @@
 import {
+  WEBSOCKET_CONNECTOR_ACTION_RECEIVED,
+  WEBSOCKET_CONNECTOR_ACTION_SENT,
   WEBSOCKET_CONNECTOR_GENERATE_ID,
   WEBSOCKET_CONNECTOR_ID_ONCHANGE,
   WEBSOCKET_CONNECTOR_PUBLISH_ACTION_FAILURE,
@@ -24,16 +26,35 @@ export function websocketConnectorSubscribeToConnection() {
 }
 
 /**
- * Actions are published in saga, handle failure and success here.
+ * Action has been sent or received over websocket
  */
-export function websocketConnectorPublishActionFailure() {
+export function websocketConnectorActionReceived({ action }) {
+  const { id, payload, timestamp, type } = action;
   return {
+    payload: { id, payload, timestamp, type },
+    type: WEBSOCKET_CONNECTOR_ACTION_RECEIVED,
+  };
+}
+export function websocketConnectorActionSent({ action }) {
+  const { id, payload, timestamp, type } = action;
+  return {
+    payload: { id, payload, timestamp, type },
+    type: WEBSOCKET_CONNECTOR_ACTION_SENT,
+  };
+}
+
+/**
+ * Called action was published, handle saga failure and success here.
+ */
+export function websocketConnectorPublishActionFailure({ action }) {
+  return {
+    payload: { action },
     type: WEBSOCKET_CONNECTOR_PUBLISH_ACTION_FAILURE,
   };
 }
-export function websocketConnectorPublishActionSuccess({ container }) {
+export function websocketConnectorPublishActionSuccess({ action }) {
   return {
-    payload: { container },
+    payload: { action },
     type: WEBSOCKET_CONNECTOR_PUBLISH_ACTION_SUCCESS,
   };
 }
@@ -66,7 +87,6 @@ export function websocketConnectorPublishSessionSuccess({ token }) {
  * Subscribe to session, failure and success
  */
 export function websocketConnectorSubscribeToSession({ id, username }) {
-  console.log('websocketConnectorSubscribeToSession: ', id, username);
   return {
     payload: { id, username },
     type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,

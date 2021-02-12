@@ -15,7 +15,7 @@ function onPublishSession({ callback, connection, id, topic, username }) {
       username,
     })
     .run(connection)
-    .then(callback({ token }));
+    .then(token => callback({ token }));
 }
 
 /**
@@ -44,11 +44,10 @@ function onPublishAction({ callback, connection, payload, sessionId, type }) {
       type,
     })
     .run(connection)
-    .then(callback('works!'));
+    .then(cursor => callback({ cursor }));
 }
 
 function onSubscribeToSession({ client, connection, id, from }) {
-  console.log('client', client, ' subscribing to:', id);
   let query = r.row('sessionId').eq(id);
 
   if (from) {
@@ -57,13 +56,14 @@ function onSubscribeToSession({ client, connection, id, from }) {
 
   return r
     .table('actions')
+    .orderBy({ index: 'timestamp' })
     .filter(query)
     .changes({ include_initial: true, include_types: true })
     .run(connection)
     .then(cursor => {
-      cursor.each((err, actionRow) =>
-        client.emit(`sessionAction:${id}`, actionRow.new_val),
-      );
+      cursor.each((err, actionRow) => {
+        client.emit(`sessionActions:${id}`, actionRow.new_val);
+      });
     });
 }
 

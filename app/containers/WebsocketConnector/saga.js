@@ -1,18 +1,34 @@
-import { call, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
+import {
+  call,
+  put,
+  select,
+  take,
+  takeEvery,
+  takeLatest,
+} from 'redux-saga/effects';
 
 import {
+  websocketConnectorPublishActionFailure,
+  websocketConnectorPublishActionSuccess,
   websocketConnectorPublishSessionFailure,
   websocketConnectorPublishSessionSuccess,
   websocketConnectorSubscribeToSessionFailure,
   websocketConnectorSubscribeToSessionSuccess,
 } from './actions';
-import { publishAction, publishSession, subscribeToSession } from './api';
+import {
+  publishAction,
+  publishSession,
+  subscribeToSessionActions,
+} from './api';
 import {
   WEBSOCKET_CONNECTOR_PUBLISH_SESSION,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
 } from './constants';
-import { makeSelectWebsocketConnectorValueOfKey } from './selectors';
-
+import {
+  getSelectWebsocketConnectorActionsCount,
+  getSelectWebsocketConnectorId,
+  makeSelectWebsocketConnectorValueOfKey,
+} from './selectors';
 import { CODE_EDITOR_ON_CHANGE } from '../CodeEditor/constants';
 import { TEXT_EDITOR_ON_CHANGE } from '../TextEditor/constants';
 
@@ -20,11 +36,40 @@ import { TEXT_EDITOR_ON_CHANGE } from '../TextEditor/constants';
  * Client publishes an action of a session.
  */
 function* onPublishAction({ payload, type }) {
-  const sessionId = yield select(makeSelectWebsocketConnectorValueOfKey('id'));
+  const index = yield select(getSelectWebsocketConnectorActionsCount());
+  const sessionId = yield select(getSelectWebsocketConnectorId());
   try {
-    yield call(publishAction, { payload, sessionId, type });
+    const result = yield call(publishAction, {
+      index,
+      payload,
+      sessionId,
+      type,
+    });
+    const id = result.cursor.generated_keys[0];
+    console.log('onPublishAction result:', id, index, payload, sessionId, type);
+    // Handles each action type's successful publication
+    yield put(
+      websocketConnectorPublishActionSuccess({
+        id,
+        index,
+        payload,
+        sessionId,
+        type,
+      }),
+    );
+    // Handles this action type's successful publication
     yield put({ type: `${type}_PUBLISH_SUCCESS` });
   } catch (error) {
+    // Handles each action type's failed publication
+    yield put(
+      websocketConnectorPublishActionFailure({
+        index,
+        payload,
+        sessionId,
+        type,
+      }),
+    );
+    // Handles this action type's failed publication
     yield put({ type: `${type}_PUBLISH_FAILURE` }, { error });
   }
 }
@@ -48,11 +93,16 @@ function* onPublishSession({ payload }) {
 function* onSubscribeToSession({ payload }) {
   const { id } = payload;
   try {
-    yield call(subscribeToSession, { id }, action => {
-      console.log('onSubscribeToSession action', action);
-      put({ type: `${action.type}_FROM_WEBSOCKET` });
-    });
+    const channel = yield call(subscribeToSessionActions, { id });
     yield put(websocketConnectorSubscribeToSessionSuccess());
+    while (true) {
+      const action = yield take(channel);
+      // yield put(websocketConnectorPublishAction{ action }));
+      yield put({
+        type: `${action.type}_FROM_WEBSOCKET`,
+        payload: action.payload,
+      });
+    }
   } catch (error) {
     yield put(websocketConnectorSubscribeToSessionFailure({ error }));
   }
@@ -63,6 +113,7 @@ function* onSubscribeToSession({ payload }) {
  */
 export default function* websocketConnectorSaga() {
   const isHost = yield select(makeSelectWebsocketConnectorValueOfKey('isHost'));
+  // yield takeEvery(CHAT_BOX_ON_CHANGE, onPublishAction);
   if (isHost) yield takeEvery(CODE_EDITOR_ON_CHANGE, onPublishAction);
   if (isHost) yield takeEvery(TEXT_EDITOR_ON_CHANGE, onPublishAction);
   yield takeEvery(WEBSOCKET_CONNECTOR_PUBLISH_SESSION, onPublishSession);

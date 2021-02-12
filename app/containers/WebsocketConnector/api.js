@@ -1,7 +1,5 @@
 import openSocket from 'socket.io-client';
-// import { fromEventPattern } from 'rxjs';
-import { Observable, bufferTime } from 'rxjs/Observable';
-import 'rxjs/add/observable/fromEventPattern';
+import { eventChannel } from 'redux-saga';
 
 const port = 8000;
 const socket = openSocket(`http://localhost:${port}`);
@@ -36,22 +34,14 @@ function publishAction({ payload, sessionId, type }) {
   });
 }
 
-function subscribeToSession({ id }) {
-  console.log('in subscribeToSession:', id, username);
-  socket.on(`sessionAction:${id}`);
-
-  return new Promise((resolve, reject) => {
-    let sent = false;
-    socket.emit('subscribeToSession', { from: null, id, username }, data => {
-      console.log('subscribeToSession data:', data);
-      sent = true;
-      resolve(data);
+function subscribeToSessionActions({ id }) {
+  // eslint-disable-next-line new-cap
+  return new eventChannel(emit => {
+    socket.on(`sessionActions:${id}`, action => {
+      emit(action);
     });
-    setTimeout(() => {
-      if (!sent) {
-        reject();
-      }
-    }, 2000);
+    socket.emit('subscribeToSessionActions', { id });
+    return () => {};
   });
 }
 
@@ -67,6 +57,6 @@ function subscribeToConnectionEvent(callback) {
 export {
   publishSession,
   publishAction,
-  subscribeToSession,
+  subscribeToSessionActions,
   subscribeToConnectionEvent,
 };

@@ -1,3 +1,8 @@
+export const WEBSOCKET_CONNECTOR_ACTION_RECEIVED =
+  'app/containers/WebsocketConnector/ACTION_RECEIVED';
+export const WEBSOCKET_CONNECTOR_ACTION_SENT =
+  'app/containers/WebsocketConnector/ACTION_SENT';
+
 export const WEBSOCKET_CONNECTOR_PUBLISH_SESSION =
   'app/containers/WebsocketConnector/PUBLISH_SESSION';
 export const WEBSOCKET_CONNECTOR_PUBLISH_SESSION_FAILURE =

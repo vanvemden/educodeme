@@ -18,6 +18,18 @@ const makeSelectWebsocketConnector = () =>
     websocketConnectorState => websocketConnectorState,
   );
 
+const getSelectWebsocketConnectorActionsCount = () =>
+  createSelector(
+    makeSelectWebsocketConnectorValueOfKey('actions'),
+    actions => actions.length,
+  );
+
+const getSelectWebsocketConnectorId = () =>
+  createSelector(
+    makeSelectWebsocketConnectorValueOfKey('id'),
+    id => id,
+  );
+
 const makeSelectWebsocketConnectorValueOfKey = key =>
   createSelector(
     selectWebsocketConnectorDomain,
@@ -25,7 +37,9 @@ const makeSelectWebsocketConnectorValueOfKey = key =>
   );
 
 export {
-  selectWebsocketConnectorDomain,
+  getSelectWebsocketConnectorActionsCount,
+  getSelectWebsocketConnectorId,
   makeSelectWebsocketConnector,
   makeSelectWebsocketConnectorValueOfKey,
+  selectWebsocketConnectorDomain,
 };

@@ -1,5 +1,4 @@
 /* eslint consistent-return:0 import/order:0 */
-
 const express = require('express');
 const r = require('rethinkdb');
 
@@ -8,7 +7,6 @@ const {
   onPublishSession,
   onSubscribeToSession,
 } = require('./helpers');
-
 const logger = require('./logger');
 const argv = require('./argv');
 const port = require('./port');
@@ -60,10 +58,8 @@ r.connect({
       }),
     );
 
-    client.on('subscribeToSession', ({ id }, callback) => {
-      console.log("client.on('subscribeToSession'", id);
+    client.on('subscribeToSessionActions', ({ id }) => {
       onSubscribeToSession({
-        callback,
         client,
         connection,
         id,
