@@ -8,6 +8,7 @@ import {
 } from 'redux-saga/effects';
 
 import {
+  websocketConnectorActionReceived,
   websocketConnectorPublishActionFailure,
   websocketConnectorPublishActionSuccess,
   websocketConnectorPublishSessionFailure,
@@ -46,7 +47,6 @@ function* onPublishAction({ payload, type }) {
       type,
     });
     const id = result.cursor.generated_keys[0];
-    console.log('onPublishAction result:', id, index, payload, sessionId, type);
     // Handles each action type's successful publication
     yield put(
       websocketConnectorPublishActionSuccess({
@@ -97,11 +97,11 @@ function* onSubscribeToSession({ payload }) {
     yield put(websocketConnectorSubscribeToSessionSuccess());
     while (true) {
       const action = yield take(channel);
-      // yield put(websocketConnectorPublishAction{ action }));
       yield put({
         type: `${action.type}_FROM_WEBSOCKET`,
         payload: action.payload,
       });
+      yield put(websocketConnectorActionReceived({ action }));
     }
   } catch (error) {
     yield put(websocketConnectorSubscribeToSessionFailure({ error }));
@@ -113,9 +113,9 @@ function* onSubscribeToSession({ payload }) {
  */
 export default function* websocketConnectorSaga() {
   const isHost = yield select(makeSelectWebsocketConnectorValueOfKey('isHost'));
-  // yield takeEvery(CHAT_BOX_ON_CHANGE, onPublishAction);
   if (isHost) yield takeEvery(CODE_EDITOR_ON_CHANGE, onPublishAction);
   if (isHost) yield takeEvery(TEXT_EDITOR_ON_CHANGE, onPublishAction);
+  // yield takeEvery(CHAT_BOX_ON_CHANGE, onPublishAction);
   yield takeEvery(WEBSOCKET_CONNECTOR_PUBLISH_SESSION, onPublishSession);
   yield takeLatest(
     WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,

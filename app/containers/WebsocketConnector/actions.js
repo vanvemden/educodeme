@@ -52,9 +52,16 @@ export function websocketConnectorPublishActionFailure({ action }) {
     type: WEBSOCKET_CONNECTOR_PUBLISH_ACTION_FAILURE,
   };
 }
-export function websocketConnectorPublishActionSuccess({ action }) {
+export function websocketConnectorPublishActionSuccess({
+  id,
+  index,
+  payload,
+  sessionId,
+  type,
+}) {
+  console.log(id, index, payload, type);
   return {
-    payload: { action },
+    payload: { id, index, payload, sessionId, type },
     type: WEBSOCKET_CONNECTOR_PUBLISH_ACTION_SUCCESS,
   };
 }

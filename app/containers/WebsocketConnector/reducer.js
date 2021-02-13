@@ -55,6 +55,7 @@ const websocketConnectorReducer = (
       case WEBSOCKET_CONNECTOR_RESET:
         draft = websocketConnectorInitialState;
         break;
+      // WHAT CODE BELOW THIS COMMENT DO WE STILL NEED?
       case WEBSOCKET_CONNECTOR_CONNECT:
         draft.connectedUsers.push(action.payload.username);
         draft.isConnected = true;
@@ -76,13 +77,16 @@ const websocketConnectorReducer = (
         draft.id = action.payload.value;
         break;
       case WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS:
+        draft.isConnected = true;
         draft.isHost = true;
         draft.token = action.payload.token;
         break;
       case WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_FAILURE:
+        draft.isConnected = false;
         draft.errors = action.payload.errors;
         break;
       case WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS:
+        draft.isConnected = true;
         draft.isHost = false;
         break;
       case WEBSOCKET_CONNECTOR_TOPIC_ONCHANGE:
