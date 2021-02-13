@@ -30,8 +30,8 @@ function BaseCondition({
 }
 
 BaseCondition.propTypes = {
-  ComponentOnTrue: T.string,
-  ComponentOnFalse: T.string,
+  ComponentOnTrue: T.object,
+  ComponentOnFalse: T.object,
   propsToPassDown: T.object,
   ifTrue: T.bool.isRequired,
 };
