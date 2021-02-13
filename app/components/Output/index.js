@@ -1,4 +1,4 @@
-import SignalIndicator from './BaseSignalIndicator';
+import ConnectionSignal from './BaseConnectionSignal';
 import Spinner from './BaseSpinner';
 
-export { SignalIndicator, Spinner };
+export { ConnectionSignal, Spinner };

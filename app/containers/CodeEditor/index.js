@@ -1,21 +1,23 @@
 import React from 'react';
 import T from 'prop-types';
 import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
+import { createStructuredSelector } from 'reselect';
 
 import { useInjectReducer } from 'utils/injectReducer';
 
 import { codeEditorOnChange } from './actions';
-import { Editor, Container, InputLabel } from './components';
+import { Editor, ConnectionSignal, Container, InputLabel } from './components';
 import reducer from './reducer';
-import { makeSelectCodeEditor } from './selectors';
-
-import { Condition } from '../../components/Wrapper';
+import { makeSelectCodeEditorValueOfKey } from './selectors';
+import { makeSelectWebsocketConnectorValueOfKey } from '../WebsocketConnector/selectors';
 
 export const CodeEditor = ({
   containerWidth,
   hasError,
+  isConnected,
+  isHost,
   isLoading,
+  isReceiving,
   isSending,
   ...restProps
 }) => {
@@ -23,13 +25,16 @@ export const CodeEditor = ({
 
   return (
     <Container width={containerWidth}>
-      <InputLabel>Code</InputLabel>
+      <InputLabel>
+        Code
+        <ConnectionSignal
+          isConnected={isConnected}
+          isHost={isHost}
+          isReceiving={isReceiving}
+          isSending={isSending}
+        />
+      </InputLabel>
       <Editor {...restProps} />
-      <Condition
-        ifTrue={isSending}
-        ComponentOnTrue={<InputLabel>sending</InputLabel>}
-        ComponentOnFalse={<InputLabel>idle</InputLabel>}
-      />
     </Container>
   );
 };
@@ -37,24 +42,25 @@ export const CodeEditor = ({
 CodeEditor.propTypes = {
   containerWidth: T.string.isRequired,
   hasError: T.bool,
+  isConnected: T.bool,
+  isHost: T.bool,
   isLoading: T.bool,
+  isReceiving: T.bool,
   isSending: T.bool,
   onChange: T.func,
   onReset: T.func,
   value: T.string.isRequired,
 };
 
-const mapStateToProps = createSelector(
-  makeSelectCodeEditor(),
-  ({ height, isLoading, isSending, options, theme, value }) => ({
-    height,
-    isSending,
-    isLoading,
-    options,
-    theme,
-    value,
-  }),
-);
+const mapStateToProps = createStructuredSelector({
+  height: makeSelectCodeEditorValueOfKey('height'),
+  isConnected: makeSelectWebsocketConnectorValueOfKey('isConnected'),
+  isHost: makeSelectWebsocketConnectorValueOfKey('isHost'),
+  isLoading: makeSelectCodeEditorValueOfKey('isLoading'),
+  isReceiving: makeSelectCodeEditorValueOfKey('isReceiving'),
+  isSending: makeSelectCodeEditorValueOfKey('isSending'),
+  value: makeSelectCodeEditorValueOfKey('value'),
+});
 
 const mapDispatchToProps = dispatch => ({
   onChange: value => dispatch(codeEditorOnChange({ value })),

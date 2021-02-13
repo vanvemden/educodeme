@@ -7,12 +7,18 @@ import {
   TEXT_EDITOR_ON_CHANGE,
 } from './constants';
 
+import {
+  WEBSOCKET_CONNECTOR_ACTION_RECEIVED,
+  WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS,
+  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
+} from '../WebsocketConnector/constants';
+
 export const textEditorInitialState = {
   automaticLayout: true,
-  hasErrors: false,
+  hasError: false,
   height: '200px',
-  isHost: true,
   isLoading: false,
+  isReceiving: false,
   isSending: false,
   language: 'plaintext',
   options: {
@@ -35,16 +41,21 @@ const textEditorReducer = (state = textEditorInitialState, action) =>
     switch (action.type) {
       case TEXT_EDITOR_ON_CHANGE:
         draft.value = action.payload.value;
-        draft.isSending = draft.isHost;
+        draft.isSending = true;
         break;
       case TEXT_EDITOR_ON_CHANGE_FROM_WEBSOCKET:
         draft.value = action.payload.value;
+        draft.isReceiving = !draft.isReceiving;
         break;
       case TEXT_EDITOR_ON_CHANGE_PUBLISH_FAILURE:
+        draft.hasError = true;
         draft.isSending = false;
         break;
       case TEXT_EDITOR_ON_CHANGE_PUBLISH_SUCCESS:
+        draft.hasError = false;
         draft.isSending = false;
+        break;
+      case WEBSOCKET_CONNECTOR_ACTION_RECEIVED:
         break;
     }
   });
