@@ -21,7 +21,7 @@ const makeSelectTextEditor = () =>
 const makeSelectTextEditorValueOfKey = key =>
   createSelector(
     selectTextEditorDomain,
-    codeEditorState => codeEditorState[key],
+    textEditorState => textEditorState[key],
   );
 
 export {
