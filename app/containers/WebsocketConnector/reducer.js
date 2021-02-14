@@ -28,6 +28,7 @@ export const websocketConnectorInitialState = {
   isAutopilotOn: false,
   isConnected: false,
   isHost: true,
+  isLoading: false,
   timestamp: null,
   token: '',
   topic: '',
@@ -86,8 +87,10 @@ const websocketConnectorReducer = (
         draft.connectedUsers.filter(name => name === action.payload.username);
         break;
       case WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS:
+        draft.id = action.payload.id;
         draft.isConnected = true;
         draft.isHost = true;
+        draft.timestamp = action.payload.timestamp;
         draft.token = action.payload.token;
         break;
       case WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS_FAILURE:

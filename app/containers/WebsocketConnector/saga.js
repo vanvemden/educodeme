@@ -41,10 +41,15 @@ import { TEXT_EDITOR_ON_CHANGE } from '../TextEditor/constants';
  * Client publishes a session, and receives session token.
  */
 function* onPublishSession({ payload }) {
-  const { id, topic, username } = payload;
+  const { topic, username } = payload;
   try {
-    const { token } = yield call(publishSession, { id, topic, username });
-    yield put(websocketConnectorPublishSessionSuccess({ token }));
+    const { id, token, timestamp } = yield call(publishSession, {
+      topic,
+      username,
+    });
+    yield put(
+      websocketConnectorPublishSessionSuccess({ id, token, timestamp }),
+    );
   } catch (error) {
     yield put(websocketConnectorPublishSessionFailure({ error }));
   }
@@ -147,7 +152,7 @@ export default function* websocketConnectorSaga() {
   if (isHost) yield takeEvery(CODE_EDITOR_ON_CHANGE, onPublishAction);
   if (isHost) yield takeEvery(TEXT_EDITOR_ON_CHANGE, onPublishAction);
   // yield takeEvery(CHAT_BOX_ON_CHANGE, onPublishAction);
-  yield takeEvery(WEBSOCKET_CONNECTOR_PUBLISH_SESSION, onPublishSession);
+  yield takeLatest(WEBSOCKET_CONNECTOR_PUBLISH_SESSION, onPublishSession);
   yield takeLatest(
     WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
     onSubscribeToSession,

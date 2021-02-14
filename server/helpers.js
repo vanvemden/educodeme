@@ -3,19 +3,22 @@ const r = require('rethinkdb');
 /**
  * Client publishes a session
  */
-function onPublishSession({ callback, connection, id, topic, username }) {
+function onPublishSession({ callback, connection, topic, username }) {
   const token = '!UNIQUE_HOST_TOKEN!';
+  const timestamp = new Date();
   return r
     .table('sessions')
     .insert({
-      id,
-      timestamp: new Date(),
+      timestamp,
       token,
       topic,
       username,
     })
     .run(connection)
-    .then(token => callback({ token }));
+    .then(result => {
+      const id = result.generated_keys[0];
+      return callback({ id, timestamp, token });
+    });
 }
 
 /**

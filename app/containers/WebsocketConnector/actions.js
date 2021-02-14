@@ -71,9 +71,9 @@ export function websocketConnectorPublishActionSuccess({
 /**
  * Publish session, failure and success
  */
-export function websocketConnectorPublishSession({ id, topic, username }) {
+export function websocketConnectorPublishSession({ topic, username }) {
   return {
-    payload: { id, topic, username },
+    payload: { topic, username },
     type: WEBSOCKET_CONNECTOR_PUBLISH_SESSION,
   };
 }
@@ -85,9 +85,9 @@ export function websocketConnectorPublishSessionFailure({ error }) {
   };
 }
 
-export function websocketConnectorPublishSessionSuccess({ token }) {
+export function websocketConnectorPublishSessionSuccess({ id, token }) {
   return {
-    payload: { token },
+    payload: { id, token },
     type: WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS,
   };
 }

@@ -39,11 +39,10 @@ r.connect({
   db: 'educodeme',
 }).then(connection => {
   io.on('connection', client => {
-    client.on('publishSession', ({ id, topic, username }, callback) =>
+    client.on('publishSession', ({ topic, username }, callback) =>
       onPublishSession({
         callback,
         connection,
-        id,
         topic,
         username,
       }),

@@ -4,10 +4,10 @@ import { eventChannel } from 'redux-saga';
 const port = 8000;
 const socket = openSocket(`http://localhost:${port}`);
 
-function publishSession({ id, topic, username }) {
+function publishSession({ topic, username }) {
   return new Promise((resolve, reject) => {
     let sent = false;
-    socket.emit('publishSession', { id, topic, username }, response => {
+    socket.emit('publishSession', { topic, username }, response => {
       sent = true;
       resolve(response);
     });
