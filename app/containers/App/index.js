@@ -20,7 +20,7 @@ export default function App() {
   return (
     <StylesProvider injectFirst>
       <Switch>
-        <Route exact path="/session/:session_id" component={Dashboard} />
+        <Route exact path="/session/:session_id?" component={Dashboard} />
         <Route exact path="/" component={HomePage} />
         <Route component={NotFoundPage} />
       </Switch>
