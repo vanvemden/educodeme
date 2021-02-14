@@ -23,14 +23,20 @@ function onPublishSession({ callback, connection, id, topic, username }) {
  */
 function onSubscribeToSession({ client, connection, id }) {
   r.table('sessions')
-    .filter(r.row('id').eq(id))
+    .get(id)
     .changes({ include_initial: true })
     .run(connection)
-    .then(cursor => {
-      cursor.each((err, sessionRow) =>
-        client.emit(`session:${id}`, sessionRow.new_val),
-      );
-    });
+    .then(cursor =>
+      cursor.each((err, sessionRow) => {
+        const { timestamp, topic, username } = sessionRow.new_val;
+        client.emit(`session:${id}`, {
+          timestamp,
+          topic,
+          hostUsername: username,
+        });
+      }),
+    );
+  // Add listener to sessionUsers table changes
 }
 
 /**

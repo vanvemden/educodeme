@@ -1,14 +1,15 @@
 import {
-  WEBSOCKET_CONNECTOR_ACTION_RECEIVED,
-  WEBSOCKET_CONNECTOR_ACTION_SENT,
-  WEBSOCKET_CONNECTOR_GENERATE_ID,
-  WEBSOCKET_CONNECTOR_ID_ONCHANGE,
+  WEBSOCKET_CONNECTOR_SESSION_ACTION_SENT,
   WEBSOCKET_CONNECTOR_PUBLISH_ACTION_FAILURE,
   WEBSOCKET_CONNECTOR_PUBLISH_ACTION_SUCCESS,
   WEBSOCKET_CONNECTOR_PUBLISH_SESSION_FAILURE,
   WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS,
   WEBSOCKET_CONNECTOR_PUBLISH_SESSION,
+  WEBSOCKET_CONNECTOR_SESSION_ACTION_RECEIVED,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_CONNECTION,
+  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS_FAILURE,
+  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS_SUCCESS,
+  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_FAILURE,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
@@ -26,20 +27,21 @@ export function websocketConnectorSubscribeToConnection() {
 }
 
 /**
- * Action has been sent or received over websocket
+ * Session action has been sent or received over websocket
  */
-export function websocketConnectorActionReceived({ action }) {
+export function websocketConnectorSessionActionReceived({ action }) {
+  console.log(action);
   const { id, payload, timestamp, type } = action;
   return {
     payload: { id, payload, timestamp, type },
-    type: WEBSOCKET_CONNECTOR_ACTION_RECEIVED,
+    type: WEBSOCKET_CONNECTOR_SESSION_ACTION_RECEIVED,
   };
 }
-export function websocketConnectorActionSent({ action }) {
+export function websocketConnectorSessionActionSent({ action }) {
   const { id, payload, timestamp, type } = action;
   return {
     payload: { id, payload, timestamp, type },
-    type: WEBSOCKET_CONNECTOR_ACTION_SENT,
+    type: WEBSOCKET_CONNECTOR_SESSION_ACTION_SENT,
   };
 }
 
@@ -91,45 +93,60 @@ export function websocketConnectorPublishSessionSuccess({ token }) {
 }
 
 /**
- * Subscribe to session, failure and success
+ * Subscribe to receive session data, failure and success
  */
-export function websocketConnectorSubscribeToSessionActions({ id, username }) {
+export function websocketConnectorSubscribeToSession({ id }) {
   return {
-    payload: { id, username },
+    payload: { id },
     type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
   };
 }
 
-export function websocketConnectorSubscribeToSessionActionsFailure({ error }) {
+export function websocketConnectorSubscribeToSessionFailure({ error }) {
   return {
     payload: { error },
     type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_FAILURE,
   };
 }
 
+export function websocketConnectorSubscribeToSessionSuccess({
+  hostUsername,
+  id,
+  timestamp,
+  topic,
+}) {
+  return {
+    payload: { hostUsername, id, timestamp, topic },
+    type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS,
+  };
+}
+
+/**
+ * Subscribe to receive session actions, failure and success
+ */
+export function websocketConnectorSubscribeToSessionActions({ id }) {
+  return {
+    payload: { id },
+    type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS,
+  };
+}
+
+export function websocketConnectorSubscribeToSessionActionsFailure({ error }) {
+  return {
+    payload: { error },
+    type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS_FAILURE,
+  };
+}
+
 export function websocketConnectorSubscribeToSessionActionsSuccess() {
   return {
-    type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS,
+    type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS_SUCCESS,
   };
 }
 
 /**
  * Form input
  */
-export function websocketConnectorGenerateId({ id }) {
-  return {
-    payload: { id },
-    type: WEBSOCKET_CONNECTOR_GENERATE_ID,
-  };
-}
-
-export function websocketConnectorIdOnChange({ value }) {
-  return {
-    payload: { value },
-    type: WEBSOCKET_CONNECTOR_ID_ONCHANGE,
-  };
-}
-
 export function websocketConnectorTopicOnChange({ value }) {
   return {
     payload: { value },

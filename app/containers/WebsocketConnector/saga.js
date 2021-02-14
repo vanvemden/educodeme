@@ -8,22 +8,26 @@ import {
 } from 'redux-saga/effects';
 
 import {
-  websocketConnectorActionReceived,
+  websocketConnectorSessionActionReceived,
   websocketConnectorPublishActionFailure,
   websocketConnectorPublishActionSuccess,
   websocketConnectorPublishSessionFailure,
   websocketConnectorPublishSessionSuccess,
+  websocketConnectorSubscribeToSessionFailure,
+  websocketConnectorSubscribeToSessionSuccess,
   websocketConnectorSubscribeToSessionActionsFailure,
   websocketConnectorSubscribeToSessionActionsSuccess,
 } from './actions';
 import {
   publishAction,
   publishSession,
+  subscribeToSession,
   subscribeToSessionActions,
 } from './api';
 import {
   WEBSOCKET_CONNECTOR_PUBLISH_SESSION,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
+  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS,
 } from './constants';
 import {
   getSelectWebsocketConnectorActionsCount,
@@ -87,6 +91,33 @@ function* onPublishAction({ payload, type }) {
   }
 }
 
+function* onSubscribeToSession({ payload }) {
+  const { id } = payload;
+  try {
+    const channel = yield call(subscribeToSession, { id });
+    // Get session information on first take
+    const { topic, hostUsername, timestamp } = yield take(channel);
+    yield put(
+      websocketConnectorSubscribeToSessionSuccess({
+        topic,
+        hostUsername,
+        id,
+        timestamp,
+      }),
+    );
+    // Listen for follow up actions, like other users joining
+    while (true) {
+      const action = yield take(channel);
+      yield put({
+        type: `${action.type}_FROM_WEBSOCKET`,
+        payload: action.payload,
+      });
+    }
+  } catch (error) {
+    yield put(websocketConnectorSubscribeToSessionFailure({ error }));
+  }
+}
+
 /**
  * @description Client subscribes to a session.
  */
@@ -101,7 +132,7 @@ function* onSubscribeToSessionActions({ payload }) {
         type: `${action.type}_FROM_WEBSOCKET`,
         payload: action.payload,
       });
-      yield put(websocketConnectorActionReceived({ action }));
+      yield put(websocketConnectorSessionActionReceived({ action }));
     }
   } catch (error) {
     yield put(websocketConnectorSubscribeToSessionActionsFailure({ error }));
@@ -119,6 +150,10 @@ export default function* websocketConnectorSaga() {
   yield takeEvery(WEBSOCKET_CONNECTOR_PUBLISH_SESSION, onPublishSession);
   yield takeLatest(
     WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
+    onSubscribeToSession,
+  );
+  yield takeLatest(
+    WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS,
     onSubscribeToSessionActions,
   );
 }

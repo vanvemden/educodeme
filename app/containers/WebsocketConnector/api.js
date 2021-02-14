@@ -34,6 +34,25 @@ function publishAction({ payload, sessionId, type }) {
   });
 }
 
+/**
+ * @description Client subscribes to session topic, host, connected
+ * users, etc
+ * @param {string} Session id
+ */
+function subscribeToSession({ id }) {
+  // eslint-disable-next-line new-cap
+  return new eventChannel(emit => {
+    socket.on(`session:${id}`, action => {
+      emit(action);
+    });
+    socket.on(`sessionUsers:${id}`, action => {
+      emit(action);
+    });
+    socket.emit('subscribeToSession', { id });
+    return () => {};
+  });
+}
+
 function subscribeToSessionActions({ id }) {
   // eslint-disable-next-line new-cap
   return new eventChannel(emit => {
@@ -57,6 +76,7 @@ function subscribeToConnectionEvent(callback) {
 export {
   publishSession,
   publishAction,
+  subscribeToSession,
   subscribeToSessionActions,
   subscribeToConnectionEvent,
 };
