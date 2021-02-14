@@ -12,12 +12,7 @@ export function Editor({ value, ...restProps }) {
 }
 
 Editor.propTypes = {
-  height: PropTypes.string,
-  language: PropTypes.string,
-  theme: PropTypes.string,
   value: PropTypes.string.isRequired,
-  width: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
 };
 
 export default Editor;
