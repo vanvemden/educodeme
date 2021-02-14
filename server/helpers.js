@@ -21,13 +21,14 @@ function onPublishSession({ callback, connection, id, topic, username }) {
 /**
  * Client subscribes to a session
  */
-function onSubscribeToSessions({ client, connection }) {
+function onSubscribeToSession({ client, connection, id }) {
   r.table('sessions')
+    .filter(r.row('id').eq(id))
     .changes({ include_initial: true })
     .run(connection)
     .then(cursor => {
       cursor.each((err, sessionRow) =>
-        client.emit('session', sessionRow.new_val),
+        client.emit(`session:${id}`, sessionRow.new_val),
       );
     });
 }
@@ -47,7 +48,7 @@ function onPublishAction({ callback, connection, payload, sessionId, type }) {
     .then(cursor => callback({ cursor }));
 }
 
-function onSubscribeToSession({ client, connection, id, from }) {
+function onSubscribeToSessionActions({ client, connection, id, from }) {
   let query = r.row('sessionId').eq(id);
 
   if (from) {
@@ -71,5 +72,5 @@ module.exports = {
   onPublishAction,
   onPublishSession,
   onSubscribeToSession,
-  onSubscribeToSessions,
+  onSubscribeToSessionActions,
 };

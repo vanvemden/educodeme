@@ -93,21 +93,21 @@ export function websocketConnectorPublishSessionSuccess({ token }) {
 /**
  * Subscribe to session, failure and success
  */
-export function websocketConnectorSubscribeToSession({ id, username }) {
+export function websocketConnectorSubscribeToSessionActions({ id, username }) {
   return {
     payload: { id, username },
     type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
   };
 }
 
-export function websocketConnectorSubscribeToSessionFailure({ error }) {
+export function websocketConnectorSubscribeToSessionActionsFailure({ error }) {
   return {
     payload: { error },
     type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_FAILURE,
   };
 }
 
-export function websocketConnectorSubscribeToSessionSuccess() {
+export function websocketConnectorSubscribeToSessionActionsSuccess() {
   return {
     type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS,
   };

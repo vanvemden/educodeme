@@ -12,7 +12,7 @@ import {
   websocketConnectorGenerateId,
   websocketConnectorIdOnChange,
   websocketConnectorPublishSession,
-  websocketConnectorSubscribeToSession,
+  websocketConnectorSubscribeToSessionActions,
   websocketConnectorTopicOnChange,
   websocketConnectorUsernameOnChange,
 } from './actions';
@@ -33,7 +33,7 @@ function WebsocketConnector({
   handleGenerateId,
   handleIdOnChange,
   handlePublishSession,
-  handleSubscribeToSession,
+  handleSubscribeToSessionActions,
   handleTopicOnChange,
   handleUsernameOnChange,
   id,
@@ -98,7 +98,7 @@ function WebsocketConnector({
             <ConnectButton
               disabled={isConnected}
               label="JOIN"
-              onClick={() => handleSubscribeToSession({ id, username })}
+              onClick={() => handleSubscribeToSessionActions({ id, username })}
             />
           </Fragment>
         )}
@@ -111,7 +111,7 @@ WebsocketConnector.propTypes = {
   handleGenerateId: T.func.isRequired,
   handleIdOnChange: T.func.isRequired,
   handlePublishSession: T.func.isRequired,
-  handleSubscribeToSession: T.func.isRequired,
+  handleSubscribeToSessionActions: T.func.isRequired,
   handleTopicOnChange: T.func.isRequired,
   handleUsernameOnChange: T.func.isRequired,
   id: T.string.isRequired,
@@ -137,8 +137,8 @@ const mapDispatchToProps = dispatch => ({
   handleIdOnChange: value => dispatch(websocketConnectorIdOnChange({ value })),
   handlePublishSession: ({ id, topic, username }) =>
     dispatch(websocketConnectorPublishSession({ id, topic, username })),
-  handleSubscribeToSession: ({ id, username }) =>
-    dispatch(websocketConnectorSubscribeToSession({ id, username })),
+  handleSubscribeToSessionActions: ({ id, username }) =>
+    dispatch(websocketConnectorSubscribeToSessionActions({ id, username })),
   handleTopicOnChange: value =>
     dispatch(websocketConnectorTopicOnChange({ value })),
   handleUsernameOnChange: value =>

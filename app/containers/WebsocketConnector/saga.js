@@ -13,8 +13,8 @@ import {
   websocketConnectorPublishActionSuccess,
   websocketConnectorPublishSessionFailure,
   websocketConnectorPublishSessionSuccess,
-  websocketConnectorSubscribeToSessionFailure,
-  websocketConnectorSubscribeToSessionSuccess,
+  websocketConnectorSubscribeToSessionActionsFailure,
+  websocketConnectorSubscribeToSessionActionsSuccess,
 } from './actions';
 import {
   publishAction,
@@ -32,6 +32,19 @@ import {
 } from './selectors';
 import { CODE_EDITOR_ON_CHANGE } from '../CodeEditor/constants';
 import { TEXT_EDITOR_ON_CHANGE } from '../TextEditor/constants';
+
+/**
+ * Client publishes a session, and receives session token.
+ */
+function* onPublishSession({ payload }) {
+  const { id, topic, username } = payload;
+  try {
+    const { token } = yield call(publishSession, { id, topic, username });
+    yield put(websocketConnectorPublishSessionSuccess({ token }));
+  } catch (error) {
+    yield put(websocketConnectorPublishSessionFailure({ error }));
+  }
+}
 
 /**
  * Client publishes an action of a session.
@@ -75,26 +88,13 @@ function* onPublishAction({ payload, type }) {
 }
 
 /**
- * Client publishes a session, and receives session token.
+ * @description Client subscribes to a session.
  */
-function* onPublishSession({ payload }) {
-  const { id, topic, username } = payload;
-  try {
-    const { token } = yield call(publishSession, { id, topic, username });
-    yield put(websocketConnectorPublishSessionSuccess({ token }));
-  } catch (error) {
-    yield put(websocketConnectorPublishSessionFailure({ error }));
-  }
-}
-
-/**
- * Client subscribes to a session.
- */
-function* onSubscribeToSession({ payload }) {
+function* onSubscribeToSessionActions({ payload }) {
   const { id } = payload;
   try {
     const channel = yield call(subscribeToSessionActions, { id });
-    yield put(websocketConnectorSubscribeToSessionSuccess());
+    yield put(websocketConnectorSubscribeToSessionActionsSuccess());
     while (true) {
       const action = yield take(channel);
       yield put({
@@ -104,7 +104,7 @@ function* onSubscribeToSession({ payload }) {
       yield put(websocketConnectorActionReceived({ action }));
     }
   } catch (error) {
-    yield put(websocketConnectorSubscribeToSessionFailure({ error }));
+    yield put(websocketConnectorSubscribeToSessionActionsFailure({ error }));
   }
 }
 
@@ -119,6 +119,6 @@ export default function* websocketConnectorSaga() {
   yield takeEvery(WEBSOCKET_CONNECTOR_PUBLISH_SESSION, onPublishSession);
   yield takeLatest(
     WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
-    onSubscribeToSession,
+    onSubscribeToSessionActions,
   );
 }

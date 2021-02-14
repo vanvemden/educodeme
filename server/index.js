@@ -6,6 +6,7 @@ const {
   onPublishAction,
   onPublishSession,
   onSubscribeToSession,
+  onSubscribeToSessionActions,
 } = require('./helpers');
 const logger = require('./logger');
 const argv = require('./argv');
@@ -38,16 +39,6 @@ r.connect({
   db: 'educodeme',
 }).then(connection => {
   io.on('connection', client => {
-    client.on('publishAction', ({ payload, sessionId, type }, callback) =>
-      onPublishAction({
-        callback,
-        connection,
-        payload,
-        sessionId,
-        type,
-      }),
-    );
-
     client.on('publishSession', ({ id, topic, username }, callback) =>
       onPublishSession({
         callback,
@@ -58,8 +49,26 @@ r.connect({
       }),
     );
 
-    client.on('subscribeToSessionActions', ({ id }) => {
+    client.on('publishAction', ({ payload, sessionId, type }, callback) =>
+      onPublishAction({
+        callback,
+        connection,
+        payload,
+        sessionId,
+        type,
+      }),
+    );
+
+    client.on('subscribeToSession', ({ id }) => {
       onSubscribeToSession({
+        client,
+        connection,
+        id,
+      });
+    });
+
+    client.on('subscribeToSessionActions', ({ id }) => {
+      onSubscribeToSessionActions({
         client,
         connection,
         id,
