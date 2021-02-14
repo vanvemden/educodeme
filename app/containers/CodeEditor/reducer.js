@@ -7,11 +7,7 @@ import {
   CODE_EDITOR_ON_CHANGE,
 } from './constants';
 
-import {
-  WEBSOCKET_CONNECTOR_ACTION_RECEIVED,
-  WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS,
-  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
-} from '../WebsocketConnector/constants';
+import { WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS } from '../WebsocketConnector/constants';
 
 export const codeEditorInitialState = {
   automaticLayout: true,
@@ -55,7 +51,8 @@ const codeEditorReducer = (state = codeEditorInitialState, action) =>
         draft.hasError = false;
         draft.isSending = false;
         break;
-      case WEBSOCKET_CONNECTOR_ACTION_RECEIVED:
+      case WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS:
+        draft.options.readOnly = !draft.isHost;
         break;
     }
   });
