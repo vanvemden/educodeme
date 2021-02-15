@@ -13,6 +13,8 @@ import {
   websocketConnectorSubscribeToSession,
   websocketConnectorSubscribeToSessionActions,
   websocketConnectorTopicOnChange,
+  websocketConnectorUnpublishSession,
+  websocketConnectorUnsubscribeSession,
   websocketConnectorUsernameOnChange,
 } from './actions';
 import { subscribeToConnectionEvent } from './api';
@@ -33,10 +35,13 @@ function WebsocketConnector({
   handleSubscribeToSession,
   handleSubscribeToSessionActions,
   handleTopicOnChange,
+  handleUnpublishSession,
+  handleUnsubscribeSession,
   handleUsernameOnChange,
   id,
   isConnected,
   isHost,
+  token,
   topic,
   username,
 }) {
@@ -93,7 +98,11 @@ function WebsocketConnector({
           <DisconnectButton
             disabled={!isConnected}
             label="STOP"
-            onClick={() => handleDisconnect({ id, username })}
+            onClick={() =>
+              isHost
+                ? handleUnpublishSession({ id, token, username })
+                : handleUnsubscribeSession({ id, username })
+            }
           />
         ) : (
           <Fragment>
@@ -124,11 +133,14 @@ WebsocketConnector.propTypes = {
   handleSubscribeToSession: T.func.isRequired,
   handleSubscribeToSessionActions: T.func.isRequired,
   handleTopicOnChange: T.func.isRequired,
+  handleUnpublishSession: T.func.isRequired,
+  handleUnsubscribeSession: T.func.isRequired,
   handleUsernameOnChange: T.func.isRequired,
   id: T.string,
   isConnected: T.bool.isRequired,
   isHost: T.bool.isRequired,
   isLoading: T.bool.isRequired,
+  token: T.string.isRequired,
   topic: T.string,
   username: T.string.isRequired,
 };
@@ -138,6 +150,7 @@ const mapStateToProps = createStructuredSelector({
   isConnected: makeSelectWebsocketConnectorValueOfKey('isConnected'),
   isHost: makeSelectWebsocketConnectorValueOfKey('isHost'),
   isLoading: makeSelectWebsocketConnectorValueOfKey('isLoading'),
+  token: makeSelectWebsocketConnectorValueOfKey('token'),
   topic: makeSelectWebsocketConnectorValueOfKey('topic'),
   username: makeSelectWebsocketConnectorValueOfKey('username'),
 });
@@ -145,8 +158,12 @@ const mapStateToProps = createStructuredSelector({
 const mapDispatchToProps = dispatch => ({
   handlePublishSession: ({ topic, username }) =>
     dispatch(websocketConnectorPublishSession({ topic, username })),
+  handleUnpublishSession: ({ id, token, username }) =>
+    dispatch(websocketConnectorUnpublishSession({ id, token, username })),
   handleSubscribeToSession: ({ id }) =>
     dispatch(websocketConnectorSubscribeToSession({ id })),
+  handleUnsubscribeSession: ({ id, username }) =>
+    dispatch(websocketConnectorUnsubscribeSession({ id, username })),
   handleSubscribeToSessionActions: ({ id, username }) =>
     dispatch(websocketConnectorSubscribeToSessionActions({ id, username })),
   handleTopicOnChange: value =>

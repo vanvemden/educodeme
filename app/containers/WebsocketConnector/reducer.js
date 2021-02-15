@@ -1,5 +1,4 @@
 import produce from 'immer';
-import { v4 as uuidv4 } from 'uuid';
 
 import {
   WEBSOCKET_CONNECTOR_CONNECT_FROM_WEBSOCKET,
@@ -16,6 +15,7 @@ import {
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS,
   WEBSOCKET_CONNECTOR_TOPIC_ONCHANGE_FROM_WEBSOCKET,
   WEBSOCKET_CONNECTOR_TOPIC_ONCHANGE,
+  WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION,
   WEBSOCKET_CONNECTOR_USERNAME_ONCHANGE,
 } from './constants';
 
@@ -69,6 +69,10 @@ const websocketConnectorReducer = (
         draft.isHost = false;
         draft.timestamp = action.payload.timestamp;
         draft.topic = action.payload.topic;
+        break;
+      case WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION:
+        console.log('WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION');
+        draft.isConnected = false;
         break;
 
       // WHAT CODE BELOW THIS COMMENT DO WE STILL NEED?

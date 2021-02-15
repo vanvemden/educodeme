@@ -19,6 +19,21 @@ function publishSession({ topic, username }) {
   });
 }
 
+function unpublishSession({ id, token, username }) {
+  return new Promise((resolve, reject) => {
+    let sent = false;
+    socket.emit('unpublishSession', { id, token, username }, response => {
+      sent = true;
+      resolve(response);
+    });
+    setTimeout(() => {
+      if (!sent) {
+        reject();
+      }
+    }, 2000);
+  });
+}
+
 function publishAction({ payload, sessionId, type }) {
   return new Promise((resolve, reject) => {
     let sent = false;
@@ -34,11 +49,6 @@ function publishAction({ payload, sessionId, type }) {
   });
 }
 
-/**
- * @description Client subscribes to session topic, host, connected
- * users, etc
- * @param {string} Session id
- */
 function subscribeToSession({ id }) {
   // eslint-disable-next-line new-cap
   return new eventChannel(emit => {
@@ -50,6 +60,24 @@ function subscribeToSession({ id }) {
     });
     socket.emit('subscribeToSession', { id });
     return () => {};
+  });
+}
+
+function unsubscribeSession({ id, username }) {
+  return new Promise((resolve, reject) => {
+    let sent = false;
+    socket.removeAllListeners(`session:${id}`);
+    socket.removeAllListeners(`sessionActions:${id}`);
+    socket.removeAllListeners(`sessionUsers:${id}`);
+    socket.emit('unsubscribeSession', { id, username }, response => {
+      sent = true;
+      resolve(response);
+    });
+    setTimeout(() => {
+      if (!sent) {
+        reject();
+      }
+    }, 2000);
   });
 }
 
@@ -74,9 +102,11 @@ function subscribeToConnectionEvent(callback) {
 }
 
 export {
-  publishSession,
   publishAction,
+  publishSession,
+  subscribeToConnectionEvent,
   subscribeToSession,
   subscribeToSessionActions,
-  subscribeToConnectionEvent,
+  unpublishSession,
+  unsubscribeSession,
 };

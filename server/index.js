@@ -7,6 +7,9 @@ const {
   onPublishSession,
   onSubscribeToSession,
   onSubscribeToSessionActions,
+  onUnpublishSession,
+  onUnsubscribeSession,
+  onUnsubscribeSessionActions,
 } = require('./helpers');
 const logger = require('./logger');
 const argv = require('./argv');
@@ -48,6 +51,16 @@ r.connect({
       }),
     );
 
+    client.on('unpublishSession', ({ id, token, username }, callback) =>
+      onUnpublishSession({
+        callback,
+        connection,
+        id,
+        token,
+        username,
+      }),
+    );
+
     client.on('publishAction', ({ payload, sessionId, type }, callback) =>
       onPublishAction({
         callback,
@@ -66,8 +79,27 @@ r.connect({
       });
     });
 
-    client.on('subscribeToSessionActions', ({ id }) => {
+    client.on('unsubscribeSession', ({ id, username }) => {
+      onUnsubscribeSession({
+        client,
+        connection,
+        id,
+        username,
+      });
+    });
+
+    client.on('subscribeToSessionActions', ({ from, id, username }) => {
       onSubscribeToSessionActions({
+        client,
+        connection,
+        from,
+        id,
+        username,
+      });
+    });
+
+    client.on('unsubscribeSessionActions', ({ id }) => {
+      onUnsubscribeSessionActions({
         client,
         connection,
         id,
