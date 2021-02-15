@@ -1,5 +1,5 @@
 /*
- * HostCard
+ * Dashboard
  *
  * For hosting a session
  *
@@ -14,10 +14,9 @@ import DirectionButton from './DirectionButton';
 import TextEditor from '../../containers/TextEditor';
 import WebsocketConnector from '../../containers/WebsocketConnector';
 
-export default function HostCard() {
+export default function Dashboard() {
   const [flexDirection, setFlexDirection] = useState('row');
   const [containerWidth, setContainerWidth] = useState('50%');
-
   const handleDirection = () => {
     const newDirection = flexDirection === 'row' ? 'column' : 'row';
     const newWidth = containerWidth === '50%' ? '100%' : '50%';
@@ -34,8 +33,8 @@ export default function HostCard() {
         <DirectionButton onClick={handleDirection} direction={flexDirection} />
       </ContainerRow>
       <ContainerRow flexdirection={flexDirection}>
-        <CodeEditor containerWidth={containerWidth} />
         <TextEditor containerWidth={containerWidth} />
+        <CodeEditor containerWidth={containerWidth} />
       </ContainerRow>
     </Container>
   );

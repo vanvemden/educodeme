@@ -4,10 +4,25 @@ import { eventChannel } from 'redux-saga';
 const port = 8000;
 const socket = openSocket(`http://localhost:${port}`);
 
-function publishSession({ id, topic, username }) {
+function publishSession({ topic, username }) {
   return new Promise((resolve, reject) => {
     let sent = false;
-    socket.emit('publishSession', { id, topic, username }, response => {
+    socket.emit('publishSession', { topic, username }, response => {
+      sent = true;
+      resolve(response);
+    });
+    setTimeout(() => {
+      if (!sent) {
+        reject();
+      }
+    }, 2000);
+  });
+}
+
+function unpublishSession({ id, token, username }) {
+  return new Promise((resolve, reject) => {
+    let sent = false;
+    socket.emit('unpublishSession', { id, token, username }, response => {
       sent = true;
       resolve(response);
     });
@@ -25,6 +40,38 @@ function publishAction({ payload, sessionId, type }) {
     socket.emit('publishAction', { payload, sessionId, type }, data => {
       sent = true;
       resolve(data);
+    });
+    setTimeout(() => {
+      if (!sent) {
+        reject();
+      }
+    }, 2000);
+  });
+}
+
+function subscribeToSession({ id }) {
+  // eslint-disable-next-line new-cap
+  return new eventChannel(emit => {
+    socket.on(`session:${id}`, action => {
+      emit(action);
+    });
+    socket.on(`sessionUsers:${id}`, action => {
+      emit(action);
+    });
+    socket.emit('subscribeToSession', { id });
+    return () => {};
+  });
+}
+
+function unsubscribeSession({ id, username }) {
+  return new Promise((resolve, reject) => {
+    let sent = false;
+    socket.removeAllListeners(`session:${id}`);
+    socket.removeAllListeners(`sessionActions:${id}`);
+    socket.removeAllListeners(`sessionUsers:${id}`);
+    socket.emit('unsubscribeSession', { id, username }, response => {
+      sent = true;
+      resolve(response);
     });
     setTimeout(() => {
       if (!sent) {
@@ -55,8 +102,11 @@ function subscribeToConnectionEvent(callback) {
 }
 
 export {
-  publishSession,
   publishAction,
-  subscribeToSessionActions,
+  publishSession,
   subscribeToConnectionEvent,
+  subscribeToSession,
+  subscribeToSessionActions,
+  unpublishSession,
+  unsubscribeSession,
 };

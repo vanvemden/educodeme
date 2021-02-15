@@ -1,18 +1,28 @@
 import {
-  WEBSOCKET_CONNECTOR_ACTION_RECEIVED,
-  WEBSOCKET_CONNECTOR_ACTION_SENT,
-  WEBSOCKET_CONNECTOR_GENERATE_ID,
-  WEBSOCKET_CONNECTOR_ID_ONCHANGE,
   WEBSOCKET_CONNECTOR_PUBLISH_ACTION_FAILURE,
   WEBSOCKET_CONNECTOR_PUBLISH_ACTION_SUCCESS,
   WEBSOCKET_CONNECTOR_PUBLISH_SESSION_FAILURE,
   WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS,
   WEBSOCKET_CONNECTOR_PUBLISH_SESSION,
+  WEBSOCKET_CONNECTOR_SESSION_ACTION_RECEIVED,
+  WEBSOCKET_CONNECTOR_SESSION_ACTION_SENT,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_CONNECTION,
+  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS_FAILURE,
+  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS_SUCCESS,
+  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_FAILURE,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS,
   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
   WEBSOCKET_CONNECTOR_TOPIC_ONCHANGE,
+  WEBSOCKET_CONNECTOR_UNPUBLISH_SESSION_FAILURE,
+  WEBSOCKET_CONNECTOR_UNPUBLISH_SESSION_SUCCESS,
+  WEBSOCKET_CONNECTOR_UNPUBLISH_SESSION,
+  WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_ACTIONS_FAILURE,
+  WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_ACTIONS_SUCCESS,
+  WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_ACTIONS,
+  WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_FAILURE,
+  WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_SUCCESS,
+  WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION,
   WEBSOCKET_CONNECTOR_USERNAME_ONCHANGE,
 } from './constants';
 
@@ -26,20 +36,20 @@ export function websocketConnectorSubscribeToConnection() {
 }
 
 /**
- * Action has been sent or received over websocket
+ * Session action has been sent or received over websocket
  */
-export function websocketConnectorActionReceived({ action }) {
+export function websocketConnectorSessionActionReceived({ action }) {
   const { id, payload, timestamp, type } = action;
   return {
     payload: { id, payload, timestamp, type },
-    type: WEBSOCKET_CONNECTOR_ACTION_RECEIVED,
+    type: WEBSOCKET_CONNECTOR_SESSION_ACTION_RECEIVED,
   };
 }
-export function websocketConnectorActionSent({ action }) {
+export function websocketConnectorSessionActionSent({ action }) {
   const { id, payload, timestamp, type } = action;
   return {
     payload: { id, payload, timestamp, type },
-    type: WEBSOCKET_CONNECTOR_ACTION_SENT,
+    type: WEBSOCKET_CONNECTOR_SESSION_ACTION_SENT,
   };
 }
 
@@ -59,7 +69,6 @@ export function websocketConnectorPublishActionSuccess({
   sessionId,
   type,
 }) {
-  console.log(id, index, payload, type);
   return {
     payload: { id, index, payload, sessionId, type },
     type: WEBSOCKET_CONNECTOR_PUBLISH_ACTION_SUCCESS,
@@ -69,9 +78,9 @@ export function websocketConnectorPublishActionSuccess({
 /**
  * Publish session, failure and success
  */
-export function websocketConnectorPublishSession({ id, topic, username }) {
+export function websocketConnectorPublishSession({ topic, username }) {
   return {
-    payload: { id, topic, username },
+    payload: { topic, username },
     type: WEBSOCKET_CONNECTOR_PUBLISH_SESSION,
   };
 }
@@ -83,19 +92,42 @@ export function websocketConnectorPublishSessionFailure({ error }) {
   };
 }
 
-export function websocketConnectorPublishSessionSuccess({ token }) {
+export function websocketConnectorPublishSessionSuccess({ id, token }) {
   return {
-    payload: { token },
+    payload: { id, token },
     type: WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS,
   };
 }
 
 /**
- * Subscribe to session, failure and success
+ * Unpublish session, failure and success
  */
-export function websocketConnectorSubscribeToSession({ id, username }) {
+export function websocketConnectorUnpublishSession({ id, token, username }) {
   return {
-    payload: { id, username },
+    payload: { id, token, username },
+    type: WEBSOCKET_CONNECTOR_UNPUBLISH_SESSION,
+  };
+}
+
+export function websocketConnectorUnpublishSessionFailure({ error }) {
+  return {
+    payload: { error },
+    type: WEBSOCKET_CONNECTOR_UNPUBLISH_SESSION_FAILURE,
+  };
+}
+
+export function websocketConnectorUnpublishSessionSuccess() {
+  return {
+    type: WEBSOCKET_CONNECTOR_UNPUBLISH_SESSION_SUCCESS,
+  };
+}
+
+/**
+ * Subscribe to receive session data, failure and success
+ */
+export function websocketConnectorSubscribeToSession({ id }) {
+  return {
+    payload: { id },
     type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
   };
 }
@@ -107,29 +139,107 @@ export function websocketConnectorSubscribeToSessionFailure({ error }) {
   };
 }
 
-export function websocketConnectorSubscribeToSessionSuccess() {
+export function websocketConnectorSubscribeToSessionSuccess({
+  hostUsername,
+  id,
+  timestamp,
+  topic,
+}) {
   return {
+    payload: { hostUsername, id, timestamp, topic },
     type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS,
+  };
+}
+
+/**
+ * Unsubscribe from receiving session data, failure and success
+ */
+export function websocketConnectorUnsubscribeSession({ id, username }) {
+  return {
+    payload: { id, username },
+    type: WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION,
+  };
+}
+
+export function websocketConnectorUnsubscribeSessionFailure({ error }) {
+  return {
+    payload: { error },
+    type: WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_FAILURE,
+  };
+}
+
+export function websocketConnectorUnsubscribeSessionSuccess() {
+  return {
+    type: WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_SUCCESS,
+  };
+}
+
+/**
+ * Subscribe to receive session actions, failure and success
+ */
+export function websocketConnectorSubscribeToSessionActions({ id }) {
+  return {
+    payload: { id },
+    type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS,
+  };
+}
+
+export function websocketConnectorSubscribeToSessionActionsFailure({ error }) {
+  return {
+    payload: { error },
+    type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS_FAILURE,
+  };
+}
+
+export function websocketConnectorSubscribeToSessionActionsSuccess() {
+  return {
+    type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS_SUCCESS,
+  };
+}
+
+/**
+ * Unsubscribe to receive session actions, and handle failure and success
+ */
+export function websocketConnectorUnsubscribeSessionActions({ id }) {
+  return {
+    payload: { id },
+    type: WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_ACTIONS,
+  };
+}
+
+export function websocketConnectorUnsubscribeSessionActionsFailure({ error }) {
+  return {
+    payload: { error },
+    type: WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_ACTIONS_FAILURE,
+  };
+}
+
+export function websocketConnectorUnsubscribeSessionActionsSuccess() {
+  return {
+    type: WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_ACTIONS_SUCCESS,
+  };
+}
+
+/**
+ * Disconnect the host or join session
+ */
+export function websocketConnectorDisconnectHost({ id, username }) {
+  return {
+    payload: { id, username },
+    type: WEBSOCKET_CONNECTOR_DISCONNECT_HOST,
+  };
+}
+
+export function websocketConnectorDisconnectJoin({ id, username }) {
+  return {
+    payload: { id, username },
+    type: WEBSOCKET_CONNECTOR_DISCONNECT_JOIN,
   };
 }
 
 /**
  * Form input
  */
-export function websocketConnectorGenerateId({ id }) {
-  return {
-    payload: { id },
-    type: WEBSOCKET_CONNECTOR_GENERATE_ID,
-  };
-}
-
-export function websocketConnectorIdOnChange({ value }) {
-  return {
-    payload: { value },
-    type: WEBSOCKET_CONNECTOR_ID_ONCHANGE,
-  };
-}
-
 export function websocketConnectorTopicOnChange({ value }) {
   return {
     payload: { value },

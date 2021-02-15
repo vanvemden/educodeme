@@ -49,6 +49,7 @@ CodeEditor.propTypes = {
   isSending: T.bool,
   onChange: T.func,
   onReset: T.func,
+  options: T.object,
   value: T.string.isRequired,
 };
 
@@ -59,6 +60,7 @@ const mapStateToProps = createStructuredSelector({
   isLoading: makeSelectCodeEditorValueOfKey('isLoading'),
   isReceiving: makeSelectCodeEditorValueOfKey('isReceiving'),
   isSending: makeSelectCodeEditorValueOfKey('isSending'),
+  options: makeSelectCodeEditorValueOfKey('options'),
   value: makeSelectCodeEditorValueOfKey('value'),
 });
 

@@ -6,6 +6,10 @@ const {
   onPublishAction,
   onPublishSession,
   onSubscribeToSession,
+  onSubscribeToSessionActions,
+  onUnpublishSession,
+  onUnsubscribeSession,
+  onUnsubscribeSessionActions,
 } = require('./helpers');
 const logger = require('./logger');
 const argv = require('./argv');
@@ -38,6 +42,25 @@ r.connect({
   db: 'educodeme',
 }).then(connection => {
   io.on('connection', client => {
+    client.on('publishSession', ({ topic, username }, callback) =>
+      onPublishSession({
+        callback,
+        connection,
+        topic,
+        username,
+      }),
+    );
+
+    client.on('unpublishSession', ({ id, token, username }, callback) =>
+      onUnpublishSession({
+        callback,
+        connection,
+        id,
+        token,
+        username,
+      }),
+    );
+
     client.on('publishAction', ({ payload, sessionId, type }, callback) =>
       onPublishAction({
         callback,
@@ -48,18 +71,35 @@ r.connect({
       }),
     );
 
-    client.on('publishSession', ({ id, topic, username }, callback) =>
-      onPublishSession({
-        callback,
+    client.on('subscribeToSession', ({ id }) => {
+      onSubscribeToSession({
+        client,
         connection,
         id,
-        topic,
-        username,
-      }),
-    );
+      });
+    });
 
-    client.on('subscribeToSessionActions', ({ id }) => {
-      onSubscribeToSession({
+    client.on('unsubscribeSession', ({ id, username }) => {
+      onUnsubscribeSession({
+        client,
+        connection,
+        id,
+        username,
+      });
+    });
+
+    client.on('subscribeToSessionActions', ({ from, id, username }) => {
+      onSubscribeToSessionActions({
+        client,
+        connection,
+        from,
+        id,
+        username,
+      });
+    });
+
+    client.on('unsubscribeSessionActions', ({ id }) => {
+      onUnsubscribeSessionActions({
         client,
         connection,
         id,

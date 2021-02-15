@@ -49,6 +49,7 @@ TextEditor.propTypes = {
   isSending: T.bool,
   onChange: T.func.isRequired,
   onReset: T.func,
+  options: T.object,
   value: T.string.isRequired,
 };
 
@@ -59,6 +60,7 @@ const mapStateToProps = createStructuredSelector({
   isLoading: makeSelectTextEditorValueOfKey('isLoading'),
   isReceiving: makeSelectTextEditorValueOfKey('isReceiving'),
   isSending: makeSelectTextEditorValueOfKey('isSending'),
+  options: makeSelectTextEditorValueOfKey('options'),
   value: makeSelectTextEditorValueOfKey('value'),
 });
 

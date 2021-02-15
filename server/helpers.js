@@ -1,35 +1,69 @@
 const r = require('rethinkdb');
-
+const { v4: uuidv4 } = require('uuid');
 /**
- * Client publishes a session
+ * Publish (start) session
  */
-function onPublishSession({ callback, connection, id, topic, username }) {
-  const token = '!UNIQUE_HOST_TOKEN!';
+function onPublishSession({ callback, connection, topic, username }) {
+  const token = uuidv4();
+  const timestamp = new Date();
   return r
     .table('sessions')
     .insert({
-      id,
-      timestamp: new Date(),
+      isLivestream: true,
+      timestamp,
       token,
       topic,
       username,
     })
     .run(connection)
-    .then(token => callback({ token }));
+    .then(result => {
+      const id = result.generated_keys[0];
+      return callback({ id, timestamp, token });
+    });
 }
 
 /**
- * Client subscribes to a session
+ * Unpublish (end) session
  */
-function onSubscribeToSessions({ client, connection }) {
+function onUnpublishSession({ callback, connection, id, token, username }) {
+  return r
+    .table('sessions')
+    .get(id)
+    .update({ isLivestream: false })
+    .run(connection)
+    .then(result => {
+      return callback({ result });
+    });
+}
+
+/**
+ * Subscribe to session info
+ */
+function onSubscribeToSession({ client, connection, id }) {
   r.table('sessions')
+    .get(id)
     .changes({ include_initial: true })
     .run(connection)
-    .then(cursor => {
-      cursor.each((err, sessionRow) =>
-        client.emit('session', sessionRow.new_val),
-      );
-    });
+    .then(cursor =>
+      cursor.each((error, sessionRow) => {
+        if (error) throw error;
+        const { timestamp, topic, username } = sessionRow.new_val;
+        client.emit(`session:${id}`, {
+          timestamp,
+          topic,
+          hostUsername: username,
+        });
+      }),
+    );
+  // Add listener to sessionUsers table changes
+}
+
+/**
+ * Unsubscribe from session info
+ */
+function onUnsubscribeSession({ client, connection, id, username }) {
+  console.log('onUnsubscribeSession id/username', id, username);
+  // In table 'sessionUsers', row with given id and username, is deleted
 }
 
 /**
@@ -47,7 +81,17 @@ function onPublishAction({ callback, connection, payload, sessionId, type }) {
     .then(cursor => callback({ cursor }));
 }
 
-function onSubscribeToSession({ client, connection, id, from }) {
+/**
+ * Subscribe to session actions
+ */
+function onSubscribeToSessionActions({
+  client,
+  connection,
+  id,
+  from,
+  username,
+}) {
+  // Inject username into sessionUsers table
   let query = r.row('sessionId').eq(id);
 
   if (from) {
@@ -61,15 +105,26 @@ function onSubscribeToSession({ client, connection, id, from }) {
     .changes({ include_initial: true, include_types: true })
     .run(connection)
     .then(cursor => {
-      cursor.each((err, actionRow) => {
+      cursor.each((error, actionRow) => {
+        if (error) throw error;
         client.emit(`sessionActions:${id}`, actionRow.new_val);
       });
     });
+}
+
+/**
+ * Unsubscribe from session actions
+ */
+function onUnsubscribeSessionActions({ client, connection, id, username }) {
+  console.log('onUnsubscribeSessionActions id/username', id, username);
 }
 
 module.exports = {
   onPublishAction,
   onPublishSession,
   onSubscribeToSession,
-  onSubscribeToSessions,
+  onSubscribeToSessionActions,
+  onUnpublishSession,
+  onUnsubscribeSession,
+  onUnsubscribeSessionActions,
 };
