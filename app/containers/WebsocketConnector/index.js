@@ -12,6 +12,7 @@ import {
   websocketConnectorPublishSession,
   websocketConnectorSubscribeToSession,
   websocketConnectorSubscribeToSessionActions,
+  websocketConnectorSubscribeToSessionUsers,
   websocketConnectorTopicOnChange,
   websocketConnectorUnpublishSession,
   websocketConnectorUnsubscribeSession,
@@ -34,6 +35,7 @@ function WebsocketConnector({
   handlePublishSession,
   handleSubscribeToSession,
   handleSubscribeToSessionActions,
+  handleSubscribeToSessionUsers,
   handleTopicOnChange,
   handleUnpublishSession,
   handleUnsubscribeSession,
@@ -59,6 +61,7 @@ function WebsocketConnector({
         if (isValidSessionId(session_id)) {
           // subscribe to the session info, and connecting users
           handleSubscribeToSession({ id: session_id });
+          handleSubscribeToSessionUsers({ id: session_id });
         } else {
           console.log('Error: invalid id');
         }
@@ -132,6 +135,7 @@ WebsocketConnector.propTypes = {
   handlePublishSession: T.func.isRequired,
   handleSubscribeToSession: T.func.isRequired,
   handleSubscribeToSessionActions: T.func.isRequired,
+  handleSubscribeToSessionUsers: T.func.isRequired,
   handleTopicOnChange: T.func.isRequired,
   handleUnpublishSession: T.func.isRequired,
   handleUnsubscribeSession: T.func.isRequired,
@@ -162,6 +166,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch(websocketConnectorUnpublishSession({ id, token, username })),
   handleSubscribeToSession: ({ id }) =>
     dispatch(websocketConnectorSubscribeToSession({ id })),
+  handleSubscribeToSessionUsers: ({ id }) =>
+    dispatch(websocketConnectorSubscribeToSessionUsers({ id })),
   handleUnsubscribeSession: ({ id, username }) =>
     dispatch(websocketConnectorUnsubscribeSession({ id, username })),
   handleSubscribeToSessionActions: ({ id, username }) =>
