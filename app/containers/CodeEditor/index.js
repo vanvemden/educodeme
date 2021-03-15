@@ -9,7 +9,10 @@ import { codeEditorOnChange } from './actions';
 import { Editor, ConnectionSignal, Container, InputLabel } from './components';
 import reducer from './reducer';
 import { makeSelectCodeEditorValueOfKey } from './selectors';
-import { makeSelectWebsocketConnectorValueOfKey } from '../WebsocketConnector/selectors';
+import {
+  selectSocketIsConnected,
+  selectSocketIsHost,
+} from '../WebsocketConnector/selectors';
 
 export const CodeEditor = ({
   containerWidth,
@@ -55,8 +58,8 @@ CodeEditor.propTypes = {
 
 const mapStateToProps = createStructuredSelector({
   height: makeSelectCodeEditorValueOfKey('height'),
-  isConnected: makeSelectWebsocketConnectorValueOfKey('isConnected'),
-  isHost: makeSelectWebsocketConnectorValueOfKey('isHost'),
+  isConnected: selectSocketIsConnected(),
+  isHost: selectSocketIsHost(),
   isLoading: makeSelectCodeEditorValueOfKey('isLoading'),
   isReceiving: makeSelectCodeEditorValueOfKey('isReceiving'),
   isSending: makeSelectCodeEditorValueOfKey('isSending'),

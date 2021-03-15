@@ -9,7 +9,10 @@ import { textEditorOnChange } from './actions';
 import { Editor, ConnectionSignal, Container, InputLabel } from './components';
 import reducer from './reducer';
 import { makeSelectTextEditorValueOfKey } from './selectors';
-import { makeSelectWebsocketConnectorValueOfKey } from '../WebsocketConnector/selectors';
+import {
+  selectSocketIsHost,
+  selectSocketIsConnected,
+} from '../WebsocketConnector/selectors';
 
 export const TextEditor = ({
   containerWidth,
@@ -55,8 +58,8 @@ TextEditor.propTypes = {
 
 const mapStateToProps = createStructuredSelector({
   height: makeSelectTextEditorValueOfKey('height'),
-  isConnected: makeSelectWebsocketConnectorValueOfKey('isConnected'),
-  isHost: makeSelectWebsocketConnectorValueOfKey('isHost'),
+  isConnected: selectSocketIsConnected(),
+  isHost: selectSocketIsHost(),
   isLoading: makeSelectTextEditorValueOfKey('isLoading'),
   isReceiving: makeSelectTextEditorValueOfKey('isReceiving'),
   isSending: makeSelectTextEditorValueOfKey('isSending'),
