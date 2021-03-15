@@ -8,84 +8,97 @@ import {
 } from 'redux-saga/effects';
 
 import {
-  websocketConnectorPublishActionFailure,
-  websocketConnectorPublishActionSuccess,
-  websocketConnectorPublishSessionFailure,
-  websocketConnectorPublishSessionSuccess,
-  websocketConnectorPublishUserSuccess,
-  websocketConnectorSessionActionReceived,
-  websocketConnectorSubscribeToSessionActionsFailure,
-  websocketConnectorSubscribeToSessionActionsSuccess,
-  websocketConnectorSubscribeToSessionFailure,
-  websocketConnectorSubscribeToSessionSuccess,
-  websocketConnectorSubscribeToSessionUsersFailure,
-  websocketConnectorSubscribeToSessionUsersSuccess,
-  websocketConnectorUnpublishSessionFailure,
-  websocketConnectorUnpublishSessionSuccess,
-  websocketConnectorUnpublishUserFailure,
-  websocketConnectorUnpublishUserSuccess,
-  websocketConnectorUnsubscribeSessionFailure,
-  websocketConnectorUnsubscribeSessionSuccess,
-} from './actions';
+  /** Publisher actions */
+  socketPublisherPublishActionFailure,
+  socketPublisherPublishActionSuccess,
+  socketPublisherPublishSessionFailure,
+  socketPublisherPublishSessionSuccess,
+  socketPublisherPublishUserFailure,
+  socketPublisherPublishUserSuccess,
+  socketPublisherReceiveAction,
+  socketPublisherReceiveUser,
+  socketPublisherSubscribeActions,
+  socketPublisherSubscribeActionsSuccess,
+  socketPublisherSubscribeActionsFailure,
+  socketPublisherSubscribeUsersFailure,
+  socketPublisherSubscribeUsersSuccess,
+  /** Subscriber actions */
+  socketSubscriberPublishUserFailure,
+  socketSubscriberPublishUserSuccess,
+  socketSubscriberReceiveSession,
+  socketSubscriberReceiveUser,
+  socketSubscriberSubscribeActionsFailure,
+  socketSubscriberSubscribeActionsSuccess,
+  socketSubscriberSubscribeSessionFailure,
+  socketSubscriberSubscribeSessionSuccess,
+  socketSubscriberSubscribeUsersFailure,
+  socketSubscriberSubscribeUsersSuccess,
+  socketSubscriberUnpublishUserFailure,
+  socketSubscriberUnpublishUserSuccess,
+} from './actions/index';
 import {
   publishAction,
   publishSession,
   publishUser,
-  subscribeToSession,
-  subscribeToSessionActions,
-  subscribeToSessionUsers,
+  subscribeSession,
+  subscribeActions,
+  subscribeUsers,
   unpublishSession,
   unpublishUser,
-  unsubscribeSession,
 } from './api';
 import {
-  // WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_ACTIONS,
-  WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS,
-  WEBSOCKET_CONNECTOR_PUBLISH_SESSION,
-  WEBSOCKET_CONNECTOR_PUBLISH_USER_SUCCESS,
-  WEBSOCKET_CONNECTOR_PUBLISH_USER,
-  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS,
-  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_USERS_FROM_WEBSOCKET,
-  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_USERS,
-  WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
-  WEBSOCKET_CONNECTOR_UNPUBLISH_SESSION,
-  WEBSOCKET_CONNECTOR_UNPUBLISH_USER,
-  WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION,
+  SOCKET_PUBLISHER_PUBLISH_SESSION_SUCCESS,
+  SOCKET_PUBLISHER_PUBLISH_SESSION,
+  SOCKET_PUBLISHER_SUBSCRIBE_USERS_SUCCESS,
+  SOCKET_SUBSCRIBER_PUBLISH_USER_SUCCESS,
+  SOCKET_SUBSCRIBER_PUBLISH_USER,
+  SOCKET_SUBSCRIBER_SUBSCRIBE_SESSION_SUCCESS,
+  SOCKET_SUBSCRIBER_SUBSCRIBE_SESSION,
+  SOCKET_SUBSCRIBER_UNPUBLISH_USER,
+  SOCKET_PUBLISHER_PUBLISH_USER_SUCCESS,
 } from './constants';
 import {
-  getSelectWebsocketConnectorActionsCount,
-  getSelectWebsocketConnectorId,
-  makeSelectWebsocketConnectorValueOfKey,
+  selectSocketActionsCount,
+  selectSocketSessionId,
+  selectSocketSessionTopic,
+  selectSocketUserId,
+  selectSocketUsername,
+  selectSocketUserToken,
 } from './selectors';
 import { CODE_EDITOR_ON_CHANGE } from '../CodeEditor/constants';
 import { TEXT_EDITOR_ON_CHANGE } from '../TextEditor/constants';
 
 /**
- * @description Saga to  start livestream session.
- * @param {Object} Action object.
- * @param {string} params.payload - Action payload.
- * @param {string} params.payload.topic - Session topic.
- * @param {string} params.payload.username - Username of host.
- * @param {string} params.type - Action type.
+ * @description Saga to start livestream session.
  */
-function* onPublishSession({ payload: { topic, username } }) {
+function* publisherPublishSession() {
+  /** select session data from store */
+  const sessionTopic = yield select(selectSocketSessionTopic());
+  const username = yield select(selectSocketUsername());
   try {
-    /** Api call to publish session */
-    const { id, timestamp, token } = yield call(publishSession, {
-      topic,
+    /** api call to store session in db */
+    const {
+      sessionId,
+      sessionTimestamp,
+      sessionToken,
+      sessionUsername,
+    } = yield call(publishSession, {
+      sessionTopic,
       username,
     });
+    /** update store with db data */
     yield put(
-      websocketConnectorPublishSessionSuccess({
-        id,
-        timestamp,
-        token,
-        topic,
-        username,
+      socketPublisherPublishSessionSuccess({
+        sessionId,
+        sessionTimestamp,
+        sessionToken,
+        sessionTopic,
+        sessionUsername,
       }),
     );
   } catch (error) {
-    yield put(websocketConnectorPublishSessionFailure({ error }));
+    /** handle error */
+    yield put(socketPublisherPublishSessionFailure({ error }));
   }
 }
 
@@ -95,48 +108,37 @@ function* onPublishSession({ payload: { topic, username } }) {
  * @param {string} payload.id Session id.
  * @param {string} payload.token Session token.
  */
-function* onUnpublishSession({ payload: { id, token } }) {
+function* publisherUnpublishSession({ payload: { sessionId, sessionToken } }) {
   try {
     yield call(unpublishSession, {
-      id,
-      token,
+      sessionId,
+      sessionToken,
     });
-    yield put(websocketConnectorUnpublishSessionSuccess({ id }));
+    yield put(socketPublisherUnpublishSessionSuccess({ sessionId }));
   } catch (error) {
-    yield put(websocketConnectorUnpublishSessionFailure({ error }));
+    yield put(socketPublisherUnpublishSessionFailure({ error }));
   }
 }
 
 /**
  * @description Saga for publishing a user connecting to a session.
- * @param {Object} action Nested action object, containing type and payload keys.
- * @param {string} payload.sessionId Id of session connecting to.
- * @param {string} payload.username Username
  */
-function* onPublishUser({ payload: { id: sessionId, username } }) {
+function* publisherPublishUser() {
+  const sessionId = yield select(selectSocketSessionId());
+  const username = yield select(selectSocketUsername());
   try {
-    const { id, token } = yield call(publishUser, { sessionId, username });
+    const { userId, userToken } = yield call(publishUser, {
+      sessionId,
+      username,
+    });
     yield put(
-      websocketConnectorPublishUserSuccess({ id, sessionId, token, username }),
+      socketPublisherPublishUserSuccess({
+        userId,
+        userToken,
+      }),
     );
   } catch (error) {
-    yield put(websocketConnectorPublishSessionFailure({ error }));
-  }
-}
-
-/**
- * @description Saga for unpublishing a user connected to a session.
- * @param {Object} action Nested action object, containing type and payload keys.
- * @param {string} payload.id User id.
- * @param {string} payload.token User token
- * @param {string} payload.username Username
- */
-function* onUnpublishUser({ payload: { id, sessionId, token } }) {
-  try {
-    yield call(unpublishUser, { id, sessionId, token });
-    yield put(websocketConnectorUnpublishUserSuccess({ id, sessionId }));
-  } catch (error) {
-    yield put(websocketConnectorUnpublishUserFailure({ error }));
+    yield put(socketPublisherPublishUserFailure({ error }));
   }
 }
 
@@ -146,86 +148,28 @@ function* onUnpublishUser({ payload: { id, sessionId, token } }) {
  * @param {string} payload Action payload.
  * @param {string} type Action type.
  */
-function* onPublishAction({ payload, type }) {
-  const index = yield select(getSelectWebsocketConnectorActionsCount());
-  const sessionId = yield select(getSelectWebsocketConnectorId());
+function* publisherPublishAction({ payload, type }) {
+  const index = yield select(selectSocketActionsCount());
+  const sessionId = yield select(selectSocketSessionId());
   try {
-    const { id } = yield call(publishAction, {
+    const { actionId } = yield call(publishAction, {
       index,
       payload,
       sessionId,
       type,
     });
-    yield put({ type: `${type}_PUBLISH_SUCCESS` });
+    // yield put({ type: `${type}_PUBLISH_SUCCESS` });
     yield put(
-      websocketConnectorPublishActionSuccess({
-        id,
+      socketPublisherPublishActionSuccess({
+        actionId,
         index,
         payload,
-        sessionId,
         type,
       }),
     );
   } catch (error) {
-    yield put({ type: `${type}_PUBLISH_FAILURE`, payload: { error } });
-    yield put(
-      websocketConnectorPublishActionFailure({
-        index,
-        payload,
-        sessionId,
-        type,
-      }),
-    );
-  }
-}
-
-/**
- * @description Saga for subscribing to receive session topic, hostname,
- * and livestream of connecting users.
- * @param {Object} action Nested object, containing type and payload keys.
- * @param {string} payload.id Session Id.
- */
-function* onSubscribeToSession({ payload: { id } }) {
-  try {
-    const channel = yield call(subscribeToSession, { id });
-    // Get session information on first take
-    const { topic, hostUsername, timestamp } = yield take(channel);
-    yield put(
-      websocketConnectorSubscribeToSessionSuccess({
-        topic,
-        hostUsername,
-        id,
-        timestamp,
-      }),
-    );
-    // Listen for follow up actions, like other users joining
-    while (true) {
-      const action = yield take(channel);
-      yield put({
-        type: `${action.type}_FROM_WEBSOCKET`,
-        payload: action.payload,
-      });
-    }
-  } catch (error) {
-    yield put(websocketConnectorSubscribeToSessionFailure({ error }));
-  }
-}
-
-/**
- * @description Saga for unsubscribing from a session.
- * @param {Object} action Nested object, containing type and payload keys.
- * @param {string} payload.id Session Id.
- * @param [string] payload.username Username of unsubscriber.
- */
-function* onUnsubscribeSession({ payload: { id, username } }) {
-  try {
-    yield call(unsubscribeSession, {
-      id,
-      username,
-    });
-    yield put(websocketConnectorUnsubscribeSessionSuccess());
-  } catch (error) {
-    yield put(websocketConnectorUnsubscribeSessionFailure({ error }));
+    // yield put({ type: `${type}_PUBLISH_FAILURE`, payload: { error } });
+    yield put(socketPublisherPublishActionFailure({ error }));
   }
 }
 
@@ -234,103 +178,266 @@ function* onUnsubscribeSession({ payload: { id, username } }) {
  * @param {Object} action Nested action object, containing type and payload keys.
  * @param {string} payload.id Session id to subscribe to.
  */
-function* onSubscribeToSessionActions({ payload: { id } }) {
+function* publisherSubscribeActions() {
+  const sessionId = yield select(selectSocketSessionId());
   try {
-    const channel = yield call(subscribeToSessionActions, { id });
-    yield put(websocketConnectorSubscribeToSessionActionsSuccess());
+    const channel = yield call(subscribeActions, { sessionId });
+    yield put(socketPublisherSubscribeActionsSuccess());
     while (true) {
-      const { payload, timestamp, type } = yield take(channel);
-      yield put({
-        type: `${type}_FROM_WEBSOCKET`,
-        payload,
-      });
+      const { payload, type } = yield take(channel);
+      yield put(socketPublisherReceiveAction({ payload, type }));
+    }
+  } catch (error) {
+    yield put(socketPublisherSubscribeActionsFailure({ error }));
+  }
+}
+
+/**
+ * @description Saga for publishing a user connecting to a session.
+ */
+function* subscriberPublishUser() {
+  const sessionId = yield select(selectSocketSessionId());
+  const username = yield select(selectSocketUsername());
+  try {
+    const { userId, userToken } = yield call(publishUser, {
+      sessionId,
+      username,
+    });
+    yield put(
+      socketSubscriberPublishUserSuccess({
+        userId,
+        userToken,
+      }),
+    );
+  } catch (error) {
+    yield put(socketSubscriberPublishUserFailure({ error }));
+  }
+}
+
+/**
+ * @description Saga for unpublishing a user connected to a session.
+ * @param {Object} action Nested action object, containing type and payload keys.
+ * @param {string} payload.userId
+ * @param {string} payload.token
+ * @param {string} payload.username
+ */
+function* subscriberUnpublishUser() {
+  const sessionId = yield select(selectSocketSessionId());
+  const userId = yield select(selectSocketUserId());
+  const userToken = yield select(selectSocketUserToken());
+  try {
+    yield call(unpublishUser, { sessionId, userToken, userId });
+    yield put(socketSubscriberUnpublishUserSuccess());
+  } catch (error) {
+    yield put(socketSubscriberUnpublishUserFailure({ error }));
+  }
+}
+
+/**
+ * @description Saga for subscribing to livestream session.
+ */
+function* subscriberSubscribeSession({ payload: { sessionId } }) {
+  try {
+    const channel = yield call(subscribeSession, { sessionId });
+    const {
+      sessionIsLivestream,
+      sessionTimestamp,
+      sessionTopic,
+      sessionUsername,
+    } = yield take(channel);
+    yield put(
+      socketSubscriberSubscribeSessionSuccess({
+        sessionId,
+        sessionIsLivestream,
+        sessionTimestamp,
+        sessionTopic,
+        sessionUsername,
+      }),
+    );
+    while (true) {
+      // eslint-disable-next-line no-shadow
+      const { sessionIsLivestream, sessionTopic } = yield take(channel);
       yield put(
-        websocketConnectorSessionActionReceived({
-          id,
-          payload,
-          timestamp,
-          type,
+        socketSubscriberReceiveSession({
+          sessionIsLivestream,
+          sessionTopic,
         }),
       );
     }
   } catch (error) {
-    yield put(websocketConnectorSubscribeToSessionActionsFailure({ error }));
+    yield put(socketSubscriberSubscribeSessionFailure({ error }));
+  }
+}
+
+/**
+ * @description Saga for unsubscribing from a session.
+ */
+// function* subscriberUnsubscribeSession() {
+//   const sessionId = yield select(selectSocketSessionId());
+//   const userId = yield select(selectSocketUserId());
+//   const userToken = yield select(selectSocketUserToken());
+//   try {
+//     yield call(unsubscribeSession, {
+//       sessionId,
+//       userId,
+//       userToken,
+//     });
+//     yield put(socketSubscriberUnsubscribeSessionSuccess({ sessionId }));
+//   } catch (error) {
+//     yield put(socketSubscriberUnsubscribeSessionFailure({ error }));
+//   }
+// }
+
+/**
+ * @description Saga subscribing to a session's actions.
+ * @param {Object} action Nested action object, containing type and payload keys.
+ * @param {string} payload.id Session id to subscribe to.
+ */
+function* subscriberSubscribeActions() {
+  const sessionId = yield select(selectSocketSessionId());
+  try {
+    const channel = yield call(subscribeActions, { sessionId });
+    yield put(socketSubscriberSubscribeActionsSuccess());
+    while (true) {
+      const { payload, type } = yield take(channel);
+      yield put({
+        type: `${type}_FROM_SOCKET`,
+        payload,
+      });
+    }
+  } catch (error) {
+    yield put(socketSubscriberSubscribeActionsFailure({ error }));
   }
 }
 
 /**
  * @description Saga subscribing to a session's users.
- * @param {Object} action Nested action object, containing type and payload keys.
- * @param {string} payload.id Session id to subscribe to.
  */
-function* onSubscribeToSessionUsers({ payload: { id } }) {
+function* publisherSubscribeUsers() {
+  const sessionId = yield select(selectSocketSessionId());
   try {
-    const channel = yield call(subscribeToSessionUsers, { id });
-    yield put(websocketConnectorSubscribeToSessionUsersSuccess());
+    const channel = yield call(subscribeUsers, { sessionId });
+    yield put(socketPublisherSubscribeUsersSuccess());
     while (true) {
-      const action = yield take(channel);
-      yield put({
-        type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_USERS_FROM_WEBSOCKET,
-        payload: action.payload,
-      });
+      const { change, username } = yield take(channel);
+      yield put(
+        socketPublisherReceiveUser({
+          change,
+          username,
+        }),
+      );
     }
   } catch (error) {
-    yield put(websocketConnectorSubscribeToSessionUsersFailure({ error }));
+    yield put(
+      socketPublisherSubscribeUsersFailure({
+        error,
+      }),
+    );
   }
 }
+
 /**
- * Action types to publish and subscribe
+ * @description Saga subscribing to a session's users.
  */
+function* subscriberSubscribeUsers() {
+  const sessionId = yield select(selectSocketSessionId());
+  try {
+    const channel = yield call(subscribeUsers, { sessionId });
+    yield put(socketSubscriberSubscribeUsersSuccess());
+    while (true) {
+      const { change, username } = yield take(channel);
+      yield put(
+        socketSubscriberReceiveUser({
+          change,
+          username,
+        }),
+      );
+    }
+  } catch (error) {
+    yield put(
+      socketSubscriberSubscribeUsersFailure({
+        error,
+      }),
+    );
+  }
+}
 
 export default function* websocketConnectorSaga() {
-  const isHost = yield select(makeSelectWebsocketConnectorValueOfKey('isHost'));
+  yield takeEvery(CODE_EDITOR_ON_CHANGE, publisherPublishAction);
+  yield takeEvery(TEXT_EDITOR_ON_CHANGE, publisherPublishAction);
 
-  // Conditional Actions
-  if (isHost) yield takeEvery(CODE_EDITOR_ON_CHANGE, onPublishAction);
-  if (isHost) yield takeEvery(TEXT_EDITOR_ON_CHANGE, onPublishAction);
-
-  yield takeLatest(WEBSOCKET_CONNECTOR_PUBLISH_USER_SUCCESS, onPublishAction);
-
-  // yield takeEvery(CHAT_BOX_ON_CHANGE, onPublishAction);
-  yield takeLatest(WEBSOCKET_CONNECTOR_PUBLISH_SESSION, onPublishSession);
-  yield takeLatest(WEBSOCKET_CONNECTOR_PUBLISH_SESSION_SUCCESS, onPublishUser);
-
-  yield takeLatest(WEBSOCKET_CONNECTOR_UNPUBLISH_SESSION, onUnpublishSession);
-  // yield takeLatest(WEBSOCKET_CONNECTOR_PUBLISH_USER, onPublishUser);
-  yield takeLatest(WEBSOCKET_CONNECTOR_UNPUBLISH_USER, onUnpublishUser);
-
+  /**
+   * Publisher clicks Host button
+   */
+  yield takeLatest(SOCKET_PUBLISHER_PUBLISH_SESSION, publisherPublishSession);
   yield takeLatest(
-    WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
-    onSubscribeToSession,
+    SOCKET_PUBLISHER_PUBLISH_SESSION_SUCCESS,
+    publisherSubscribeUsers,
   );
+  yield takeLatest(
+    SOCKET_PUBLISHER_SUBSCRIBE_USERS_SUCCESS,
+    publisherPublishUser,
+  );
+  yield takeLatest(
+    SOCKET_PUBLISHER_PUBLISH_USER_SUCCESS,
+    publisherSubscribeActions,
+  );
+
+  /**
+   * Subscriber opens session url
+   */
+  yield takeLatest(
+    SOCKET_SUBSCRIBER_SUBSCRIBE_SESSION,
+    subscriberSubscribeSession,
+  );
+  yield takeLatest(
+    SOCKET_SUBSCRIBER_SUBSCRIBE_SESSION_SUCCESS,
+    subscriberSubscribeUsers,
+  );
+
+  /**
+   * Subscriber clicks Join button
+   */
+  yield takeLatest(SOCKET_SUBSCRIBER_PUBLISH_USER, subscriberPublishUser);
+  yield takeLatest(
+    SOCKET_SUBSCRIBER_PUBLISH_USER_SUCCESS,
+    subscriberSubscribeActions,
+  );
+
+  /**
+   * Subscriber clicks Stop button
+   */
+  yield takeLatest(SOCKET_SUBSCRIBER_UNPUBLISH_USER, subscriberUnpublishUser);
+
+  /**  on publish session success, subscribe to session users  */
+  // yield takeLatest(
+  //   SOCKET_PUBLISHER_PUBLISH_SESSION_SUCCESS,
+  //   subscriberSubscribeUsers,
+  // );
+  /** if host: on subscribe to session success, publish user */
+  // if (yield select(getSelectWebsocketConnectorIsHost())) {
+  //   yield takeLatest(
+  //     WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_USERS_SUCCESS,
+  //     subscriberPublishUser,
+  //   );
+  // }
+  /** start subscribe to session flow. */
+  // yield takeLatest(
+  //   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION,
+  //   subscriberSubscribeSession,;
+  // );
+  /** on subscribe to session success, subscribe to session users */
   // yield takeLatest(
   //   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS,
-  //   onPublishAction,
-  // );
-  yield takeLatest(
-    WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION,
-    onUnsubscribeSession,
-  );
-  // yield takeLatest(
-  //   WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_SUCCESS,
-  //   onPublishAction,
+  //   subscriberSubscribeUsers,
   // );
 
-  yield takeLatest(
-    WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS,
-    onSubscribeToSessionActions,
-  );
-  yield takeLatest(
-    WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_USERS,
-    onSubscribeToSessionUsers,
-  );
+  /** if join: on button click, publish user */
+  // yield takeLatest(WEBSOCKET_CONNECTOR_PUBLISH_USER, subscriberPublishUser);
 
+  /** on publish user success, subscribe to session actions */
   // yield takeLatest(
-  //   WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_ACTIONS_SUCCESS,
-  //   onSubscribeToSessionActions,
-  // );
-  // yield takeLatest(
-  //   WEBSOCKET_CONNECTOR_UNSUBSCRIBE_SESSION_ACTIONS,
-  //   onUnsubscribeSessionActions,
+  //   WEBSOCKET_CONNECTOR_PUBLISH_USER_SUCCESS,
+  //   subscriberSubscribeSessionA;
   // );
 }

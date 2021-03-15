@@ -1,45 +1,86 @@
 import { createSelector } from 'reselect';
 
-import { websocketConnectorInitialState } from './reducer';
+import { socketInitialState } from './reducer';
 
 /**
- * Direct selector to the WebsocketConnector state domain
+ * Direct selector to the Socket state domain
  */
-const selectWebsocketConnectorDomain = state =>
-  state.websocketConnector || websocketConnectorInitialState;
+const selectSocketDomain = state => state.socket || socketInitialState;
 
 /**
  * Memoized selectors
  */
 
-const makeSelectWebsocketConnector = () =>
+const selectSocket = () =>
   createSelector(
-    selectWebsocketConnectorDomain,
-    websocketConnectorState => websocketConnectorState,
+    selectSocketDomain,
+    state => state,
   );
 
-const getSelectWebsocketConnectorActionsCount = () =>
+const selectSocketActionsCount = () =>
   createSelector(
-    makeSelectWebsocketConnectorValueOfKey('actions'),
+    selectSocketValueOfKey('actions'),
     actions => actions.length,
   );
 
-const getSelectWebsocketConnectorId = () =>
+const selectSocketIsConnected = () =>
   createSelector(
-    makeSelectWebsocketConnectorValueOfKey('id'),
-    id => id,
+    selectSocketDomain,
+    state => state.isConnected,
   );
 
-const makeSelectWebsocketConnectorValueOfKey = key =>
+const selectSocketIsHost = () =>
   createSelector(
-    selectWebsocketConnectorDomain,
-    websocketState => websocketState[key],
+    selectSocketDomain,
+    state => state.isHost,
+  );
+
+const selectSocketSessionId = () =>
+  createSelector(
+    selectSocketDomain,
+    state => state.sessionId,
+  );
+
+const selectSocketSessionTopic = () =>
+  createSelector(
+    selectSocketDomain,
+    state => state.sessionTopic,
+  );
+
+const selectSocketUsername = () =>
+  createSelector(
+    selectSocketDomain,
+    state => state.username,
+  );
+
+const selectSocketUserId = () =>
+  createSelector(
+    selectSocketDomain,
+    state => state.userId,
+  );
+
+const selectSocketUserToken = () =>
+  createSelector(
+    selectSocketDomain,
+    state => state.userToken,
+  );
+
+const selectSocketValueOfKey = key =>
+  createSelector(
+    selectSocketDomain,
+    state => state[key],
   );
 
 export {
-  getSelectWebsocketConnectorActionsCount,
-  getSelectWebsocketConnectorId,
-  makeSelectWebsocketConnector,
-  makeSelectWebsocketConnectorValueOfKey,
-  selectWebsocketConnectorDomain,
+  selectSocketActionsCount,
+  selectSocketIsConnected,
+  selectSocketIsHost,
+  selectSocketSessionId,
+  selectSocketSessionTopic,
+  selectSocketUserId,
+  selectSocketUserToken,
+  selectSocketUsername,
+  selectSocket,
+  selectSocketValueOfKey,
+  selectSocketDomain,
 };

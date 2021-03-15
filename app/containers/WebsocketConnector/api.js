@@ -1,7 +1,6 @@
 import openSocket from 'socket.io-client';
 import { eventChannel } from 'redux-saga';
 
-import { WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_USERS_FROM_WEBSOCKET } from './constants';
 const port = 8000;
 const socket = openSocket(`http://localhost:${port}`);
 
@@ -12,14 +11,14 @@ const socket = openSocket(`http://localhost:${port}`);
 /**
  * @description Api call to start livestream session on server.
  * @param {Object} Object with params.
- * @param {string} params.topic - Session topic.
- * @param {string} params.username - Host username.
+ * @param {string} params.sessionTopic
+ * @param {string} params.username
  * @return {Object} Response from server.
  */
-function publishSession({ topic, username }) {
+function publishSession({ sessionTopic, username }) {
   return new Promise((resolve, reject) => {
     let sent = false;
-    socket.emit('publishSession', { topic, username }, response => {
+    socket.emit('publishSession', { sessionTopic, username }, response => {
       sent = true;
       resolve(response);
     });
@@ -34,14 +33,14 @@ function publishSession({ topic, username }) {
 /**
  * @description Api call to stop livestream session on server.
  * @param {Object} Object with params.
- * @param {string} params.id - Session id.
+ * @param {string} params.sessionId
  * @param {string} params.token - Session token.
  * @return {Object} Response from server.
  */
-function unpublishSession({ id, token }) {
+function unpublishSession({ sessionId, sessionToken }) {
   return new Promise((resolve, reject) => {
     let sent = false;
-    socket.emit('unpublishSession', { id, token }, response => {
+    socket.emit('unpublishSession', { sessionId, sessionToken }, response => {
       sent = true;
       resolve(response);
     });
@@ -78,15 +77,19 @@ function publishUser({ sessionId, username }) {
 /**
  * @description Api call to disconnect user from session.
  * @param {Object} Object with params.
- * @param {string} params.id - User id.
- * @param {string} params.sessionId - Session id.
- * @param {string} params.userToken - User token.
+ * @param {string} params.userId
+ * @param {string} params.sessionId
+ * @param {string} params.userToken
  * @return {Object} Response from server.
  */
-function unpublishUser({ id, sessionId, token }) {
+function unpublishUser({ sessionId, userId, userToken }) {
+  socket.removeAllListeners(`session:${sessionId}`);
+  socket.removeAllListeners(`sessionActions:${sessionId}`);
+  socket.removeAllListeners(`sessionUsers:${sessionId}`);
+
   return new Promise((resolve, reject) => {
     let sent = false;
-    socket.emit('unpublishUser', { id, sessionId, token }, response => {
+    socket.emit('unpublishUser', { sessionId, userId, userToken }, response => {
       sent = true;
       resolve(response);
     });
@@ -130,69 +133,85 @@ function publishAction({ payload, sessionId, type }) {
  * @param {Object} Object with params.
  * @param {string} params.id - Session id.
  */
-function subscribeToSession({ id }) {
+function subscribeSession({ sessionId }) {
   // eslint-disable-next-line new-cap
   return new eventChannel(emit => {
     /** Register handler for event */
-    socket.on(`session:${id}`, action => {
-      emit(action);
-    });
-    socket.on(`sessionUsers:${id}`, ({ username }) => {
-      emit({
-        type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_USERS_FROM_WEBSOCKET,
-        payload: { username },
-      });
-    });
-    /** Subscribe to the event */
-    socket.emit('subscribeToSession', { id });
+    socket.on(
+      `session:${sessionId}`,
+      ({
+        sessionIsLivestream,
+        sessionTimestamp,
+        sessionTopic,
+        sessionUsername,
+      }) => {
+        emit({
+          sessionIsLivestream,
+          sessionTimestamp,
+          sessionTopic,
+          sessionUsername,
+        });
+      },
+    );
+    socket.emit('subscribeSession', { sessionId });
     return () => {};
   });
 }
 
-function unsubscribeSession({ id, username }) {
-  return new Promise((resolve, reject) => {
-    let sent = false;
-    socket.removeAllListeners(`session:${id}`);
-    socket.removeAllListeners(`sessionActions:${id}`);
-    socket.removeAllListeners(`sessionUsers:${id}`);
-    socket.emit('unsubscribeSession', { id, username }, response => {
-      sent = true;
-      resolve(response);
-    });
-    setTimeout(() => {
-      if (!sent) {
-        reject();
-      }
-    }, 2000);
-  });
-}
+/**
+ * @description Api call to unsubscribe from session stream.
+ * @param {Object} Object with params.
+ * @param {string} params.sessionId
+ * @param {string} params.userId
+ * @param {string} params.userToken
+ */
+// function unsubscribeSession({ sessionId, userId, userToken }) {
+//   console.log(' api unsubscribeSession ', sessionId, userId, userToken);
+//   return new Promise((resolve, reject) => {
+//     let sent = false;
+//     socket.emit(
+//       'unsubscribeSession',
+//       { sessionId, userId, userToken },
+//       response => {
+//         sent = true;
+//         socket.removeAllListeners(`session:${sessionId}`);
+//         socket.removeAllListeners(`sessionActions:${sessionId}`);
+//         socket.removeAllListeners(`sessionUsers:${sessionId}`);
+//         console.log('in unsubscribeSession', socket);
+//         resolve(response);
+//       },
+//     );
+//     setTimeout(() => {
+//       if (!sent) {
+//         reject();x
+//       }
+//     }, 2000);
+//   });
+// }
 
-function subscribeToSessionActions({ id }) {
+function subscribeActions({ sessionId }) {
   // eslint-disable-next-line new-cap
   return new eventChannel(emit => {
-    socket.on(`sessionActions:${id}`, action => {
+    socket.on(`sessionActions:${sessionId}`, action => {
       emit(action);
     });
-    socket.emit('subscribeToSessionActions', { id });
+    socket.emit('subscribeActions', { sessionId });
     return () => {};
   });
 }
 
-function subscribeToSessionUsers({ id }) {
+function subscribeUsers({ sessionId }) {
   // eslint-disable-next-line new-cap
   return new eventChannel(emit => {
-    socket.on(`sessionUsers:${id}`, ({ username }) => {
-      emit({
-        type: WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_USERS_FROM_WEBSOCKET,
-        payload: { username },
-      });
+    socket.on(`sessionUsers:${sessionId}`, ({ change, username }) => {
+      emit({ change, username });
     });
-    socket.emit('subscribeToSessionUsers', { id });
+    socket.emit('subscribeUsers', { sessionId });
     return () => {};
   });
 }
 
-function subscribeToConnectionEvent(callback) {
+function subscribeConnectionEvent(callback) {
   // dispatch WEBSOCKET_CONNECTOR_ON_CONNECT
   socket.on('connect', () => callback({ state: 'connected', port }));
   // dispatch(websocketConnectorOnDisconnect)
@@ -205,11 +224,10 @@ export {
   publishAction,
   publishSession,
   publishUser,
-  subscribeToConnectionEvent,
-  subscribeToSession,
-  subscribeToSessionActions,
-  subscribeToSessionUsers,
+  subscribeConnectionEvent,
+  subscribeSession,
+  subscribeActions,
+  subscribeUsers,
   unpublishSession,
   unpublishUser,
-  unsubscribeSession,
 };

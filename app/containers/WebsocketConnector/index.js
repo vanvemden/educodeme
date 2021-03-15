@@ -7,18 +7,15 @@ import { useParams } from 'react-router';
 
 import { useInjectReducer } from '../../utils/injectReducer';
 import { useInjectSaga } from '../../utils/injectSaga';
-
 import {
-  websocketConnectorPublishSession,
-  websocketConnectorSubscribeToSession,
-  websocketConnectorSubscribeToSessionActions,
-  websocketConnectorSubscribeToSessionUsers,
-  websocketConnectorTopicOnChange,
-  websocketConnectorUnpublishSession,
-  websocketConnectorUnsubscribeSession,
-  websocketConnectorUsernameOnChange,
-} from './actions';
-import { subscribeToConnectionEvent } from './api';
+  socketPublisherPublishSession,
+  socketSubscriberSubscribeSession,
+  socketSessionTopicOnChange,
+  socketSessionUsernameOnChange,
+  socketSubscriberPublishUser,
+  socketSubscriberUnpublishUser,
+} from './actions/';
+import { subscribeConnectionEvent } from './api';
 import {
   ConnectButton,
   Container,
@@ -28,46 +25,49 @@ import {
 } from './components';
 import reducer from './reducer';
 import saga from './saga';
-import { makeSelectWebsocketConnectorValueOfKey } from './selectors';
+import {
+  selectSocketIsConnected,
+  selectSocketIsHost,
+  selectSocketSessionId,
+  selectSocketSessionTopic,
+  selectSocketUsername,
+  selectSocketValueOfKey,
+} from './selectors';
 import { isValidSessionId } from '../../utils/helpers';
 
 function WebsocketConnector({
   handlePublishSession,
-  handleSubscribeToSession,
-  handleSubscribeToSessionActions,
-  handleSubscribeToSessionUsers,
+  handlePublishUser,
+  handleSubscribeSession,
   handleTopicOnChange,
   handleUnpublishSession,
-  handleUnsubscribeSession,
+  handleUnpublishUser,
   handleUsernameOnChange,
-  id,
+  sessionId,
   isConnected,
   isHost,
-  token,
-  topic,
+  sessionToken,
+  sessionTopic,
   username,
 }) {
-  useInjectReducer({ key: 'websocketConnector', reducer });
-  useInjectSaga({ key: 'websocketConnector', saga });
+  useInjectReducer({ key: 'socket', reducer });
+  useInjectSaga({ key: 'socket', saga });
 
   const [isFormInputValid, setIsFormInputValid] = useState(false);
   const { session_id } = useParams();
 
   useEffect(() => {
-    subscribeToConnectionEvent(({ state: connectionState, port }) => {
-      console.log('WebsocketConnector ', connectionState, port);
+    subscribeConnectionEvent(({ state: connectionState, port }) => {
+      console.log('socket ', connectionState, port);
       if (session_id) {
         // Join session
         if (isValidSessionId(session_id)) {
-          // subscribe to the session info, and connecting users
-          handleSubscribeToSession({ id: session_id });
-          handleSubscribeToSessionUsers({ id: session_id });
+          handleSubscribeSession({ sessionId: session_id });
         } else {
           console.log('Error: invalid id');
         }
       } else {
-        // Hosts session
-        console.log('Host session');
+        // Host session
       }
     });
   }, [session_id]);
@@ -75,19 +75,19 @@ function WebsocketConnector({
   // Form input validation
   useEffect(() => {
     // TODO: check if username is unique
-    setIsFormInputValid(topic !== '' && username !== '');
-  }, [setIsFormInputValid, topic, username]);
+    setIsFormInputValid(sessionTopic !== '' && username !== '');
+  }, [setIsFormInputValid, sessionTopic, username]);
 
   return (
     <Container>
       <ContainerRow>
         <TextField
           disabled={!isHost}
-          id="topic"
+          id="session-topic"
           label="Session Topic"
           onChange={e => handleTopicOnChange(e.target.value)}
           required
-          value={topic}
+          value={sessionTopic}
         />
         <TextField
           disabled={isConnected}
@@ -102,9 +102,7 @@ function WebsocketConnector({
             disabled={!isConnected}
             label="STOP"
             onClick={() =>
-              isHost
-                ? handleUnpublishSession({ id, token, username })
-                : handleUnsubscribeSession({ id, username })
+              isHost ? handleUnpublishSession() : handleUnpublishUser()
             }
           />
         ) : (
@@ -113,15 +111,13 @@ function WebsocketConnector({
               <ConnectButton
                 disabled={!isFormInputValid}
                 label="HOST"
-                onClick={() => handlePublishSession({ topic, username })}
+                onClick={() => handlePublishSession()}
               />
             ) : (
               <ConnectButton
                 disabled={!isFormInputValid}
                 label="JOIN"
-                onClick={() =>
-                  handleSubscribeToSessionActions({ id, username })
-                }
+                onClick={() => handlePublishUser()}
               />
             )}
           </Fragment>
@@ -133,49 +129,41 @@ function WebsocketConnector({
 
 WebsocketConnector.propTypes = {
   handlePublishSession: T.func.isRequired,
-  handleSubscribeToSession: T.func.isRequired,
-  handleSubscribeToSessionActions: T.func.isRequired,
-  handleSubscribeToSessionUsers: T.func.isRequired,
+  handlePublishUser: T.func.isRequired,
+  handleSubscribeSession: T.func.isRequired,
+  // handleSubscribeSessionActions: T.func.isRequired,
   handleTopicOnChange: T.func.isRequired,
-  handleUnpublishSession: T.func.isRequired,
-  handleUnsubscribeSession: T.func.isRequired,
+  // handleUnpublishSession: T.func.isRequired,
+  handleUnpublishUser: T.func.isRequired,
   handleUsernameOnChange: T.func.isRequired,
-  id: T.string,
+  sessionId: T.string,
   isConnected: T.bool.isRequired,
   isHost: T.bool.isRequired,
   isLoading: T.bool.isRequired,
-  token: T.string.isRequired,
-  topic: T.string,
+  sessionToken: T.string.isRequired,
+  sessionTopic: T.string,
   username: T.string.isRequired,
 };
 
 const mapStateToProps = createStructuredSelector({
-  id: makeSelectWebsocketConnectorValueOfKey('id'),
-  isConnected: makeSelectWebsocketConnectorValueOfKey('isConnected'),
-  isHost: makeSelectWebsocketConnectorValueOfKey('isHost'),
-  isLoading: makeSelectWebsocketConnectorValueOfKey('isLoading'),
-  token: makeSelectWebsocketConnectorValueOfKey('token'),
-  topic: makeSelectWebsocketConnectorValueOfKey('topic'),
-  username: makeSelectWebsocketConnectorValueOfKey('username'),
+  sessionId: selectSocketSessionId(),
+  isConnected: selectSocketIsConnected(),
+  isHost: selectSocketIsHost(),
+  isLoading: selectSocketValueOfKey('isLoading'),
+  sessionToken: selectSocketValueOfKey('sessionToken'),
+  sessionTopic: selectSocketSessionTopic(),
+  username: selectSocketUsername(),
 });
 
 const mapDispatchToProps = dispatch => ({
-  handlePublishSession: ({ topic, username }) =>
-    dispatch(websocketConnectorPublishSession({ topic, username })),
-  handleUnpublishSession: ({ id, token, username }) =>
-    dispatch(websocketConnectorUnpublishSession({ id, token, username })),
-  handleSubscribeToSession: ({ id }) =>
-    dispatch(websocketConnectorSubscribeToSession({ id })),
-  handleSubscribeToSessionUsers: ({ id }) =>
-    dispatch(websocketConnectorSubscribeToSessionUsers({ id })),
-  handleUnsubscribeSession: ({ id, username }) =>
-    dispatch(websocketConnectorUnsubscribeSession({ id, username })),
-  handleSubscribeToSessionActions: ({ id, username }) =>
-    dispatch(websocketConnectorSubscribeToSessionActions({ id, username })),
-  handleTopicOnChange: value =>
-    dispatch(websocketConnectorTopicOnChange({ value })),
+  handleTopicOnChange: value => dispatch(socketSessionTopicOnChange({ value })),
   handleUsernameOnChange: value =>
-    dispatch(websocketConnectorUsernameOnChange({ value })),
+    dispatch(socketSessionUsernameOnChange({ value })),
+  handlePublishSession: () => dispatch(socketPublisherPublishSession()),
+  handlePublishUser: () => dispatch(socketSubscriberPublishUser()),
+  handleSubscribeSession: ({ sessionId }) =>
+    dispatch(socketSubscriberSubscribeSession({ sessionId })),
+  handleUnpublishUser: () => dispatch(socketSubscriberUnpublishUser()),
 });
 
 const withConnect = connect(
