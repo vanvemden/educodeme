@@ -1,0 +1,4 @@
+export const SOCKET_SESSION_USERNAME_ONCHANGE =
+  'app/containers/Socket/SESSION_USERNAME_ONCHANGE';
+export const SOCKET_SESSION_TOPIC_ONCHANGE =
+  'app/containers/Socket/SESSION_TOPIC_ONCHANGE';

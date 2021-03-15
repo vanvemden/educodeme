@@ -1,13 +1,13 @@
 import produce from 'immer';
 
 import {
-  TEXT_EDITOR_ON_CHANGE_FROM_WEBSOCKET,
+  TEXT_EDITOR_ON_CHANGE_FROM_SOCKET,
   TEXT_EDITOR_ON_CHANGE_PUBLISH_FAILURE,
   TEXT_EDITOR_ON_CHANGE_PUBLISH_SUCCESS,
   TEXT_EDITOR_ON_CHANGE,
 } from './constants';
 
-import { WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS } from '../WebsocketConnector/constants';
+import { SOCKET_SUBSCRIBER_SUBSCRIBE_SESSION_SUCCESS } from '../WebsocketConnector/constants';
 
 export const textEditorInitialState = {
   automaticLayout: true,
@@ -39,7 +39,7 @@ const textEditorReducer = (state = textEditorInitialState, action) =>
         draft.value = action.payload.value;
         draft.isSending = true;
         break;
-      case TEXT_EDITOR_ON_CHANGE_FROM_WEBSOCKET:
+      case TEXT_EDITOR_ON_CHANGE_FROM_SOCKET:
         draft.value = action.payload.value;
         draft.isReceiving = !draft.isReceiving;
         break;
@@ -51,8 +51,8 @@ const textEditorReducer = (state = textEditorInitialState, action) =>
         draft.hasError = false;
         draft.isSending = false;
         break;
-      case WEBSOCKET_CONNECTOR_SUBSCRIBE_TO_SESSION_SUCCESS:
-        draft.options.readOnly = !draft.isHost;
+      case SOCKET_SUBSCRIBER_SUBSCRIBE_SESSION_SUCCESS:
+        draft.options.readOnly = true;
         break;
     }
   });

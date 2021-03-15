@@ -5,11 +5,14 @@ const r = require('rethinkdb');
 const {
   onPublishAction,
   onPublishSession,
-  onSubscribeToSession,
-  onSubscribeToSessionActions,
+  onSubscribeSession,
+  onSubscribeActions,
   onUnpublishSession,
   onUnsubscribeSession,
-  onUnsubscribeSessionActions,
+  onUnsubscribeActions,
+  onSubscribeUsers,
+  onPublishUser,
+  onUnpublishUser,
 } = require('./helpers');
 const logger = require('./logger');
 const argv = require('./argv');
@@ -35,32 +38,100 @@ const io = require('socket.io')(server, {
 io.listen(ioPort);
 console.log('Socket-io listening on port ', ioPort);
 
-// RethinkDB
+/**
+ * @description Connect RethinkDb to websocket events
+ * @param {Object} Object with params.
+ * @param {string} params.host - Host of db instance.
+ * @param {number} params.port - Driver port.
+ * @param {string} params.db - Db name.
+ */
 r.connect({
   host: 'localhost',
   port: 28015,
   db: 'educodeme',
 }).then(connection => {
   io.on('connection', client => {
-    client.on('publishSession', ({ topic, username }, callback) =>
+    /**
+     * Handlers for publish and unpublish events.
+     */
+
+    /**
+     * Register handler for publish session event.
+     * @param {Object} Params object.
+     * @param {string} params.sessionTopic - Session sessionTopic.
+     * @param {string} params.username - Host username.
+     * @param {function} Callback function.
+     */
+    client.on('publishSession', ({ sessionTopic, username }, callback) =>
       onPublishSession({
         callback,
         connection,
-        topic,
+        sessionTopic,
         username,
       }),
     );
 
-    client.on('unpublishSession', ({ id, token, username }, callback) =>
-      onUnpublishSession({
+    /**
+     * Register handler for unpublish session event.
+     * @param {Object} Params object.
+     * @param {string} params.id - Session id.
+     * @param {string} params.token - Session token.
+     * @param {function} Callback function.
+     */
+    client.on(
+      'unpublishSession',
+      ({ sessionId, userId, sessionToken }, callback) =>
+        onUnpublishSession({
+          callback,
+          connection,
+          sessionId,
+          sessionToken,
+          userId,
+        }),
+    );
+
+    /**
+     * Register handler for publish user event.
+     * @param {Object} Params object.
+     * @param {string} params.sessionId - Session id.
+     * @param {string} params.username - Session token.
+     * @param {function} Callback function.
+     */
+    client.on('publishUser', ({ sessionId, username }, callback) =>
+      onPublishUser({
         callback,
         connection,
-        id,
-        token,
+        sessionId,
         username,
       }),
     );
 
+    /**
+     * Register handler for unpublish user event.
+     * @param {Object} Params object.
+     * @param {string} params.id - User id.
+     * @param {string} params.sessionId - Session id.
+     * @param {string} params.token - User token.
+     * @param {function} Callback function.
+     */
+    client.on('unpublishUser', ({ sessionId, userId, userToken }, callback) =>
+      onUnpublishUser({
+        callback,
+        connection,
+        sessionId,
+        userId,
+        userToken,
+      }),
+    );
+
+    /**
+     * Register handler for publish action event.
+     * @param {Object} Params object.
+     * @param {string} params.payload - Action payload.
+     * @param {string} params.sessionId - Session id
+     * @param {string} params.type - Action type.
+     * @param {function} Callback function.
+     */
     client.on('publishAction', ({ payload, sessionId, type }, callback) =>
       onPublishAction({
         callback,
@@ -71,38 +142,81 @@ r.connect({
       }),
     );
 
-    client.on('subscribeToSession', ({ id }) => {
-      onSubscribeToSession({
+    /**
+     * Handlers for subscribe and unsubscribe events.
+     */
+
+    /**
+     * Register handler for subscribe to session event.
+     * @param {Object} Params object.
+     * @param {string} params.id - Session id.
+     */
+    client.on('subscribeSession', ({ sessionId }) => {
+      onSubscribeSession({
         client,
         connection,
-        id,
+        sessionId,
       });
     });
 
-    client.on('unsubscribeSession', ({ id, username }) => {
+    /**
+     * Register handler for unsubscribe session event.
+     * @param {Object} Params object.
+     * @param {string} params.id - Session id.
+     * @param {string} params.userId - User id.
+     * @param {string} params.userToken - User token.
+     */
+    client.on('unsubscribeSession', ({ sessionId, userId, userToken }) => {
       onUnsubscribeSession({
         client,
         connection,
-        id,
-        username,
+        sessionId,
+        userId,
+        userToken,
       });
     });
 
-    client.on('subscribeToSessionActions', ({ from, id, username }) => {
-      onSubscribeToSessionActions({
+    /**
+     * Register handler for subscribe to users event.
+     * @param {Object} Params object.
+     * @param {string} params.id - Session id.
+     * @param {timestamp} params.from - From date/time onward.
+     */
+    client.on('subscribeUsers', ({ sessionId, from }) => {
+      console.log('in subscribeUsers ', sessionId);
+      onSubscribeUsers({
+        client,
+        connection,
+        sessionId,
+        from,
+      });
+    });
+
+    /**
+     * Register handler for subscribe to actions event.
+     * @param {Object} Params object.
+     * @param {timestamp} params.from - From date/time onward.
+     * @param {string} params.id - Session id.
+     */
+    client.on('subscribeActions', ({ from, sessionId }) => {
+      onSubscribeActions({
         client,
         connection,
         from,
-        id,
-        username,
+        sessionId,
       });
     });
 
-    client.on('unsubscribeSessionActions', ({ id }) => {
-      onUnsubscribeSessionActions({
+    /**
+     * Register handler for unsubscribe to actions event.
+     * @param {Object} Params object.
+     * @param {string} params.id - Session id.
+     */
+    client.on('unsubscribeActions', ({ sessionId }) => {
+      onUnsubscribeActions({
         client,
         connection,
-        id,
+        sessionId,
       });
     });
   });
