@@ -1,3 +1,4 @@
+const { times } = require('lodash');
 const r = require('rethinkdb');
 const { v4: uuidv4 } = require('uuid');
 
@@ -10,14 +11,15 @@ const { v4: uuidv4 } = require('uuid');
  * @param {Object} Object with params.
  * @param {function} params.callback - Callback function.
  * @param {Object} params.connection - Database connection.
- * @param {string} params.topic - Session topic.
+ * @param {string} params.sessionTopic - Session sessionTopic.
  * @param {string} params.username - Session host username.
  * @returns {Object} response - The generated session fields.
  * @returns {string} response.id - Session Id.
  * @returns {timestamp} response.timestamp - Session created timestamp.
  * @returns {string} response.token - Session token.
  */
-function onPublishSession({ callback, connection, topic, username }) {
+function onPublishSession({ callback, connection, sessionTopic, username }) {
+  console.log('onPublishSession', sessionTopic, username);
   const token = uuidv4();
   const timestamp = new Date();
   return r
@@ -26,13 +28,20 @@ function onPublishSession({ callback, connection, topic, username }) {
       isLivestream: true,
       timestamp,
       token,
-      topic,
+      sessionTopic,
       username,
     })
     .run(connection)
     .then(result => {
-      const id = result.generated_keys[0];
-      return callback({ id, timestamp, token });
+      const sessionId = result.generated_keys[0];
+      return callback({
+        sessionId,
+        sessionIsLivestream: true,
+        sessionTimestamp: timestamp,
+        sessionToken: token,
+        sessionTopic,
+        sessionUsername: username,
+      });
     });
 }
 
@@ -45,13 +54,13 @@ function onPublishSession({ callback, connection, topic, username }) {
  * @param {string} params.token - Session token.
  * @returns {string} response.token - Session token.
  */
-function onUnpublishSession({ callback, connection, id, token }) {
+function onUnpublishSession({ callback, connection, sessionId, token }) {
   return r
     .table('sessions')
-    .filter([{ id }, { token }])
+    .filter([{ id: sessionId }, { token }])
     .update({ isLivestream: false })
     .run(connection)
-    .then(result => callback({ result }));
+    .then(result => callback({ result, sessionId }));
 }
 
 /**
@@ -62,23 +71,29 @@ function onUnpublishSession({ callback, connection, id, token }) {
  * @param {string} params.sessionId - Session id.
  * @param {string} params.username - Username.
  * @returns {Object} response - The generated user fields.
- * @returns {string} response.id - User Id.
- * @returns {string} response.token - User token.
+ * @returns {string} response.userId
+ * @returns {string} response.sessionToken
  */
 function onPublishUser({ callback, connection, sessionId, username }) {
-  console.log('onPublishUser sessionId, username', sessionId, username);
   const token = uuidv4();
+  const timestamp = new Date();
   r.table('users')
     .insert({
       sessionId,
-      timestamp: new Date(),
+      timestamp,
       token,
       username,
     })
     .run(connection)
     .then(result => {
-      const id = result.generated_keys[0];
-      return callback({ id, token });
+      const userId = result.generated_keys[0];
+      return callback({
+        sessionId,
+        timestamp,
+        userToken: token,
+        userId,
+        username,
+      });
     });
 }
 
@@ -92,12 +107,20 @@ function onPublishUser({ callback, connection, sessionId, username }) {
  * @param {string} params.token - User token.
  * @returns {Object} response - The db result.
  */
-function onUnpublishUser({ callback, connection, id, sessionId, token }) {
+function onUnpublishUser({
+  callback,
+  connection,
+  sessionId,
+  userToken,
+  userId,
+}) {
   r.table('users')
-    .filter({ id, sessionId, token })
+    .filter({ id: userId, sessionId, token: userToken })
     .delete()
     .run(connection)
-    .then(result => callback(result));
+    .then(result => {
+      callback({ result });
+    });
 }
 
 /**
@@ -120,8 +143,8 @@ function onPublishAction({ callback, connection, payload, sessionId, type }) {
     })
     .run(connection)
     .then(result => {
-      const id = result.generated_keys[0];
-      return callback({ id });
+      const actionId = result.generated_keys[0];
+      return callback({ actionId, payload, sessionId, type });
     });
 }
 
@@ -136,36 +159,39 @@ function onPublishAction({ callback, connection, payload, sessionId, type }) {
  * @param {Object} params.connection - Database connection.
  * @param {string} params.id - Session id.
  */
-function onSubscribeToSession({ client, connection, id }) {
+function onSubscribeSession({ client, connection, sessionId }) {
   /** Emit session db updates to websocket clients */
   r.table('sessions')
-    .get(id)
+    .get(sessionId)
     .changes({ include_initial: true })
     .run(connection)
     .then(cursor =>
       cursor.each((error, sessionRow) => {
+        console.log('sessionRow', sessionRow);
         if (error) throw error;
-        const { timestamp, topic, username } = sessionRow.new_val;
-        client.emit(`session:${id}`, {
-          timestamp,
-          topic,
-          hostUsername: username,
-        });
-      }),
-    );
-
-  /** Emit users db updates for session to websocket clients */
-  r.table('users')
-    .filter({ sessionId: id })
-    .changes({ include_initial: true })
-    .run(connection)
-    .then(cursor =>
-      cursor.each((error, userRow) => {
-        if (error) throw error;
-        const { username } = userRow.new_val;
-        client.emit(`sessionUsers:${id}`, {
-          username,
-        });
+        if (sessionRow.new_val) {
+          const {
+            isLivestream: sessionIsLivestream,
+            timestamp: sessionTimestamp,
+            sessionTopic,
+            username: sessionUsername,
+          } = sessionRow.new_val;
+          client.emit(`session:${sessionId}`, {
+            sessionIsLivestream,
+            sessionTimestamp,
+            sessionTopic,
+            sessionUsername,
+          });
+        } else if (sessionRow.old_val) {
+          const {
+            isLivestream: sessionIsLivestream,
+            sessionTopic,
+          } = sessionRow.old_val;
+          client.emit(`session:${sessionId}`, {
+            sessionIsLivestream,
+            sessionTopic,
+          });
+        }
       }),
     );
 }
@@ -173,8 +199,14 @@ function onSubscribeToSession({ client, connection, id }) {
 /**
  * TODO: Unsubscribe from session info
  */
-function onUnsubscribeSession({ client, connection, id, userId, userToken }) {
-  console.log('onUnsubscribeSession id/username', id, userId, userToken);
+function onUnsubscribeSession({
+  client,
+  connection,
+  sessionId,
+  userId,
+  userToken,
+}) {
+  console.log('onUnsubscribeSession id/username', sessionId, userId, userToken);
   // In table 'sessionUsers', row with given id and username, is deleted
 }
 
@@ -186,8 +218,8 @@ function onUnsubscribeSession({ client, connection, id, userId, userToken }) {
  * @param {string} params.id - Session id.
  * @param {timestamp} params.from - From date/time onward.
  */
-function onSubscribeToSessionUsers({ client, connection, id, from }) {
-  let query = r.row('sessionId').eq(id);
+function onSubscribeUsers({ client, connection, from, sessionId }) {
+  let query = r.row('sessionId').eq(sessionId);
 
   if (from) {
     query = query.and(r.row('timestamp').ge(new Date(from)));
@@ -202,13 +234,19 @@ function onSubscribeToSessionUsers({ client, connection, id, from }) {
     .then(cursor => {
       cursor.each((error, userRow) => {
         if (error) throw error;
-        const { userId, username } = userRow.new_val;
-        console.log(
-          'helpers.js: onSubscribeToSessionUser userId/usernames',
-          userId,
-          username,
-        );
-        client.emit(`sessionUsers:${id}`, { username });
+        if (userRow.new_val) {
+          const { username } = userRow.new_val;
+          client.emit(`sessionUsers:${sessionId}`, {
+            change: 'subscribe',
+            username,
+          });
+        } else if (userRow.old_val) {
+          const { username } = userRow.old_val;
+          client.emit(`sessionUsers:${sessionId}`, {
+            change: 'unsubscribe',
+            username,
+          });
+        }
       });
     });
 }
@@ -221,8 +259,8 @@ function onSubscribeToSessionUsers({ client, connection, id, from }) {
  * @param {string} params.id - Session id.
  * @param {timestamp} params.from - From date/time onward.
  */
-function onSubscribeToSessionActions({ client, connection, id, from }) {
-  let query = r.row('sessionId').eq(id);
+function onSubscribeActions({ client, connection, sessionId, from }) {
+  let query = r.row('sessionId').eq(sessionId);
 
   if (from) {
     query = query.and(r.row('timestamp').ge(new Date(from)));
@@ -237,7 +275,7 @@ function onSubscribeToSessionActions({ client, connection, id, from }) {
     .then(cursor => {
       cursor.each((error, actionRow) => {
         if (error) throw error;
-        client.emit(`sessionActions:${id}`, actionRow.new_val);
+        client.emit(`sessionActions:${sessionId}`, actionRow.new_val);
       });
     });
 }
@@ -253,9 +291,9 @@ module.exports = {
   onPublishAction,
   onPublishSession,
   onPublishUser,
-  onSubscribeToSession,
-  onSubscribeToSessionActions,
-  onSubscribeToSessionUsers,
+  onSubscribeSession,
+  onSubscribeActions,
+  onSubscribeUsers,
   onUnpublishSession,
   onUnpublishUser,
   onUnsubscribeSession,

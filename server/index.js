@@ -5,12 +5,12 @@ const r = require('rethinkdb');
 const {
   onPublishAction,
   onPublishSession,
-  onSubscribeToSession,
-  onSubscribeToSessionActions,
+  onSubscribeSession,
+  onSubscribeActions,
   onUnpublishSession,
   onUnsubscribeSession,
-  onUnsubscribeSessionActions,
-  onSubscribeToSessionUsers,
+  onUnsubscribeActions,
+  onSubscribeUsers,
   onPublishUser,
   onUnpublishUser,
 } = require('./helpers');
@@ -58,15 +58,15 @@ r.connect({
     /**
      * Register handler for publish session event.
      * @param {Object} Params object.
-     * @param {string} params.topic - Session topic.
+     * @param {string} params.sessionTopic - Session sessionTopic.
      * @param {string} params.username - Host username.
      * @param {function} Callback function.
      */
-    client.on('publishSession', ({ topic, username }, callback) =>
+    client.on('publishSession', ({ sessionTopic, username }, callback) =>
       onPublishSession({
         callback,
         connection,
-        topic,
+        sessionTopic,
         username,
       }),
     );
@@ -78,13 +78,16 @@ r.connect({
      * @param {string} params.token - Session token.
      * @param {function} Callback function.
      */
-    client.on('unpublishSession', ({ id, token }, callback) =>
-      onUnpublishSession({
-        callback,
-        connection,
-        id,
-        token,
-      }),
+    client.on(
+      'unpublishSession',
+      ({ sessionId, userId, sessionToken }, callback) =>
+        onUnpublishSession({
+          callback,
+          connection,
+          sessionId,
+          sessionToken,
+          userId,
+        }),
     );
 
     /**
@@ -111,13 +114,13 @@ r.connect({
      * @param {string} params.token - User token.
      * @param {function} Callback function.
      */
-    client.on('unpublishUser', ({ id, sessionId, token }, callback) =>
+    client.on('unpublishUser', ({ sessionId, userId, userToken }, callback) =>
       onUnpublishUser({
         callback,
         connection,
-        id,
         sessionId,
-        token,
+        userId,
+        userToken,
       }),
     );
 
@@ -148,11 +151,11 @@ r.connect({
      * @param {Object} Params object.
      * @param {string} params.id - Session id.
      */
-    client.on('subscribeToSession', ({ id }) => {
-      onSubscribeToSession({
+    client.on('subscribeSession', ({ sessionId }) => {
+      onSubscribeSession({
         client,
         connection,
-        id,
+        sessionId,
       });
     });
 
@@ -163,11 +166,11 @@ r.connect({
      * @param {string} params.userId - User id.
      * @param {string} params.userToken - User token.
      */
-    client.on('unsubscribeSession', ({ id, userId, userToken }) => {
+    client.on('unsubscribeSession', ({ sessionId, userId, userToken }) => {
       onUnsubscribeSession({
         client,
         connection,
-        id,
+        sessionId,
         userId,
         userToken,
       });
@@ -179,11 +182,12 @@ r.connect({
      * @param {string} params.id - Session id.
      * @param {timestamp} params.from - From date/time onward.
      */
-    client.on('subscribeToSessionUsers', ({ id, from }) => {
-      onSubscribeToSessionUsers({
+    client.on('subscribeUsers', ({ sessionId, from }) => {
+      console.log('in subscribeUsers ', sessionId);
+      onSubscribeUsers({
         client,
         connection,
-        id,
+        sessionId,
         from,
       });
     });
@@ -194,12 +198,12 @@ r.connect({
      * @param {timestamp} params.from - From date/time onward.
      * @param {string} params.id - Session id.
      */
-    client.on('subscribeToSessionActions', ({ from, id }) => {
-      onSubscribeToSessionActions({
+    client.on('subscribeActions', ({ from, sessionId }) => {
+      onSubscribeActions({
         client,
         connection,
         from,
-        id,
+        sessionId,
       });
     });
 
@@ -208,11 +212,11 @@ r.connect({
      * @param {Object} Params object.
      * @param {string} params.id - Session id.
      */
-    client.on('unsubscribeSessionActions', ({ id }) => {
-      onUnsubscribeSessionActions({
+    client.on('unsubscribeActions', ({ sessionId }) => {
+      onUnsubscribeActions({
         client,
         connection,
-        id,
+        sessionId,
       });
     });
   });
