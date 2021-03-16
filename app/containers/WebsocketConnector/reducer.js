@@ -128,6 +128,8 @@ const socketReducer = (state = socketInitialState, action) =>
 
       case SOCKET_SUBSCRIBER_UNPUBLISH_USER_SUCCESS:
         draft.isConnected = false;
+        draft.userId = socketInitialState.userId;
+        draft.userToken = socketInitialState.userToken;
         break;
 
       case SOCKET_SUBSCRIBER_RECEIVE_USER:
