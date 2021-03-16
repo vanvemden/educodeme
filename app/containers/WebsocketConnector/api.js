@@ -83,10 +83,6 @@ function publishUser({ sessionId, username }) {
  * @return {Object} Response from server.
  */
 function unpublishUser({ sessionId, userId, userToken }) {
-  socket.removeAllListeners(`session:${sessionId}`);
-  socket.removeAllListeners(`sessionActions:${sessionId}`);
-  socket.removeAllListeners(`sessionUsers:${sessionId}`);
-
   return new Promise((resolve, reject) => {
     let sent = false;
     socket.emit('unpublishUser', { sessionId, userId, userToken }, response => {
@@ -220,14 +216,29 @@ function subscribeConnectionEvent(callback) {
   socket.on('connect_error', () => callback({ state: 'disconnected', port }));
 }
 
+function unsubscribeActions({ sessionId }) {
+  socket.removeAllListeners(`sessionActions:${sessionId}`);
+}
+
+function unsubscribeSession({ sessionId }) {
+  socket.removeAllListeners(`session:${sessionId}`);
+}
+
+function unsubscribeUsers({ sessionId }) {
+  socket.removeAllListeners(`sessionUsers:${sessionId}`);
+}
+
 export {
   publishAction,
   publishSession,
   publishUser,
+  subscribeActions,
   subscribeConnectionEvent,
   subscribeSession,
-  subscribeActions,
   subscribeUsers,
   unpublishSession,
   unpublishUser,
+  unsubscribeActions,
+  unsubscribeSession,
+  unsubscribeUsers,
 };

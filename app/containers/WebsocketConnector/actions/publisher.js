@@ -8,6 +8,7 @@ import {
   SOCKET_PUBLISHER_PUBLISH_USER_FAILURE,
   SOCKET_PUBLISHER_PUBLISH_USER_SUCCESS,
   SOCKET_PUBLISHER_PUBLISH_USER,
+  SOCKET_PUBLISHER_RECEIVE_ACTION,
   SOCKET_PUBLISHER_RECEIVE_USER,
   SOCKET_PUBLISHER_SUBSCRIBE_ACTIONS_FAILURE,
   SOCKET_PUBLISHER_SUBSCRIBE_ACTIONS_SUCCESS,
@@ -18,7 +19,15 @@ import {
   SOCKET_PUBLISHER_UNPUBLISH_SESSION_FAILURE,
   SOCKET_PUBLISHER_UNPUBLISH_SESSION_SUCCESS,
   SOCKET_PUBLISHER_UNPUBLISH_SESSION,
-  SOCKET_PUBLISHER_RECEIVE_ACTION,
+  SOCKET_PUBLISHER_UNPUBLISH_USER_FAILURE,
+  SOCKET_PUBLISHER_UNPUBLISH_USER_SUCCESS,
+  SOCKET_PUBLISHER_UNPUBLISH_USER,
+  SOCKET_PUBLISHER_UNSUBSCRIBE_ACTIONS_FAILURE,
+  SOCKET_PUBLISHER_UNSUBSCRIBE_ACTIONS_SUCCESS,
+  SOCKET_PUBLISHER_UNSUBSCRIBE_ACTIONS,
+  SOCKET_PUBLISHER_UNSUBSCRIBE_USERS_FAILURE,
+  SOCKET_PUBLISHER_UNSUBSCRIBE_USERS_SUCCESS,
+  SOCKET_PUBLISHER_UNSUBSCRIBE_USERS,
 } from '../constants';
 
 /**
@@ -184,17 +193,8 @@ export function socketPublisherReceiveUser({ change, username }) {
  * @param {number} params.sessionToken
  * @param {timestamp} params.username
  */
-export function socketPublisherUnpublishSession({
-  sessionId,
-  sessionToken,
-  username,
-}) {
+export function socketPublisherUnpublishSession() {
   return {
-    payload: {
-      sessionId,
-      sessionToken,
-      username,
-    },
     type: SOCKET_PUBLISHER_UNPUBLISH_SESSION,
   };
 }
@@ -285,5 +285,91 @@ export function socketPublisherSubscribeUsersFailure({ error }) {
 export function socketPublisherSubscribeUsersSuccess() {
   return {
     type: SOCKET_PUBLISHER_SUBSCRIBE_USERS_SUCCESS,
+  };
+}
+
+/**
+ * @description Dispatched to unpublish user from session.
+ * @param {Object} Object with params
+ * @param {string} params.sessionId
+ */
+export function socketPublisherUnpublishUser() {
+  return {
+    type: SOCKET_PUBLISHER_UNPUBLISH_USER,
+  };
+}
+
+/**
+ * @description Dispatched on unpublish user from session failure.
+ * @param {Object} Object with params
+ * @param {string} params.error
+ */
+export function socketPublisherUnpublishUserFailure({ error }) {
+  return {
+    payload: { error },
+    type: SOCKET_PUBLISHER_UNPUBLISH_USER_FAILURE,
+  };
+}
+
+/**
+ * @description Dispatched on unpublish from session success.
+ */
+export function socketPublisherUnpublishUserSuccess() {
+  return {
+    type: SOCKET_PUBLISHER_UNPUBLISH_USER_SUCCESS,
+  };
+}
+
+/**
+ * @description Dispatched to unsubscribe from session actions.
+ */
+export function socketPublisherUnsubscribeActions() {
+  return {
+    type: SOCKET_PUBLISHER_UNSUBSCRIBE_ACTIONS,
+  };
+}
+
+/**
+ * @description Dispatched on unsubscribe from session actions failure.
+ */
+export function socketPublisherUnsubscribeActionsFailure() {
+  return {
+    type: SOCKET_PUBLISHER_UNSUBSCRIBE_ACTIONS_FAILURE,
+  };
+}
+
+/**
+ * @description Dispatched on unsubscribe from session actions success.
+ */
+export function socketPublisherUnsubscribeActionsSuccess() {
+  return {
+    type: SOCKET_PUBLISHER_UNSUBSCRIBE_ACTIONS_SUCCESS,
+  };
+}
+
+/**
+ * @description Dispatched to unsubscribe from session users.
+ */
+export function socketPublisherUnsubscribeUsers() {
+  return {
+    type: SOCKET_PUBLISHER_UNSUBSCRIBE_USERS,
+  };
+}
+
+/**
+ * @description Dispatched on unsubscribe from session failure.
+ */
+export function socketPublisherUnsubscribeUsersFailure() {
+  return {
+    type: SOCKET_PUBLISHER_UNSUBSCRIBE_USERS_FAILURE,
+  };
+}
+
+/**
+ * @description Dispatched on unsubscribe from session success.
+ */
+export function socketPublisherUnsubscribeUsersSuccess() {
+  return {
+    type: SOCKET_PUBLISHER_UNSUBSCRIBE_USERS_SUCCESS,
   };
 }

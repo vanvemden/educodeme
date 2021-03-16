@@ -41,6 +41,12 @@ const selectSocketSessionId = () =>
     state => state.sessionId,
   );
 
+const selectSocketSessionToken = () =>
+  createSelector(
+    selectSocketDomain,
+    state => state.sessionToken,
+  );
+
 const selectSocketSessionTopic = () =>
   createSelector(
     selectSocketDomain,
@@ -76,6 +82,7 @@ export {
   selectSocketIsConnected,
   selectSocketIsHost,
   selectSocketSessionId,
+  selectSocketSessionToken,
   selectSocketSessionTopic,
   selectSocketUserId,
   selectSocketUserToken,

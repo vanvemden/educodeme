@@ -16,6 +16,12 @@ import {
   SOCKET_SUBSCRIBER_UNPUBLISH_USER_FAILURE,
   SOCKET_SUBSCRIBER_UNPUBLISH_USER_SUCCESS,
   SOCKET_SUBSCRIBER_UNPUBLISH_USER,
+  SOCKET_SUBSCRIBER_UNSUBSCRIBE_ACTIONS_FAILURE,
+  SOCKET_SUBSCRIBER_UNSUBSCRIBE_ACTIONS_SUCCESS,
+  SOCKET_SUBSCRIBER_UNSUBSCRIBE_ACTIONS,
+  SOCKET_SUBSCRIBER_UNSUBSCRIBE_USERS_FAILURE,
+  SOCKET_SUBSCRIBER_UNSUBSCRIBE_USERS_SUCCESS,
+  SOCKET_SUBSCRIBER_UNSUBSCRIBE_USERS,
 } from '../constants';
 
 /**
@@ -201,7 +207,7 @@ export function socketSubscriberSubscribeUsersSuccess() {
 }
 
 /**
- * @description Dispatch to unsubscribe from livestream session.
+ * @description Dispatched to unpublish user from session.
  * @param {Object} Object with params
  * @param {string} params.sessionId
  */
@@ -212,7 +218,7 @@ export function socketSubscriberUnpublishUser() {
 }
 
 /**
- * @description Dispatch on unsubscribe from livestream session failure.
+ * @description Dispatched on unpublish user from session failure.
  * @param {Object} Object with params
  * @param {string} params.error
  */
@@ -224,10 +230,64 @@ export function socketSubscriberUnpublishUserFailure({ error }) {
 }
 
 /**
- * @description Dispatch on unsubscribe from livestream session success.
+ * @description Dispatched on unpublish from session success.
  */
 export function socketSubscriberUnpublishUserSuccess() {
   return {
     type: SOCKET_SUBSCRIBER_UNPUBLISH_USER_SUCCESS,
+  };
+}
+
+/**
+ * @description Dispatched to unsubscribe from session actions.
+ */
+export function socketSubscriberUnsubscribeActions() {
+  return {
+    type: SOCKET_SUBSCRIBER_UNSUBSCRIBE_ACTIONS,
+  };
+}
+
+/**
+ * @description Dispatched on unsubscribe from session actions failure.
+ */
+export function socketSubscriberUnsubscribeActionsFailure() {
+  return {
+    type: SOCKET_SUBSCRIBER_UNSUBSCRIBE_ACTIONS_FAILURE,
+  };
+}
+
+/**
+ * @description Dispatched on unsubscribe from session actions success.
+ */
+export function socketSubscriberUnsubscribeActionsSuccess() {
+  return {
+    type: SOCKET_SUBSCRIBER_UNSUBSCRIBE_ACTIONS_SUCCESS,
+  };
+}
+
+/**
+ * @description Dispatched to unsubscribe from session users.
+ */
+export function socketSubscriberUnsubscribeUsers() {
+  return {
+    type: SOCKET_SUBSCRIBER_UNSUBSCRIBE_USERS,
+  };
+}
+
+/**
+ * @description Dispatched on unsubscribe from session failure.
+ */
+export function socketSubscriberUnsubscribeUsersFailure() {
+  return {
+    type: SOCKET_SUBSCRIBER_UNSUBSCRIBE_USERS_FAILURE,
+  };
+}
+
+/**
+ * @description Dispatched on unsubscribe from session success.
+ */
+export function socketSubscriberUnsubscribeUsersSuccess() {
+  return {
+    type: SOCKET_SUBSCRIBER_UNSUBSCRIBE_USERS_SUCCESS,
   };
 }
