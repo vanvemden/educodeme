@@ -78,16 +78,13 @@ r.connect({
      * @param {string} params.token - Session token.
      * @param {function} Callback function.
      */
-    client.on(
-      'unpublishSession',
-      ({ sessionId, userId, sessionToken }, callback) =>
-        onUnpublishSession({
-          callback,
-          connection,
-          sessionId,
-          sessionToken,
-          userId,
-        }),
+    client.on('unpublishSession', ({ sessionId, sessionToken }, callback) =>
+      onUnpublishSession({
+        callback,
+        connection,
+        sessionId,
+        sessionToken,
+      }),
     );
 
     /**

@@ -54,10 +54,10 @@ function onPublishSession({ callback, connection, sessionTopic, username }) {
  * @param {string} params.token - Session token.
  * @returns {string} response.token - Session token.
  */
-function onUnpublishSession({ callback, connection, sessionId, token }) {
+function onUnpublishSession({ callback, connection, sessionId, sessionToken }) {
   return r
     .table('sessions')
-    .filter([{ id: sessionId }, { token }])
+    .filter([{ id: sessionId }, { token: sessionToken }])
     .update({ isLivestream: false })
     .run(connection)
     .then(result => callback({ result, sessionId }));
