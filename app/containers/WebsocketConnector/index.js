@@ -14,6 +14,7 @@ import {
   socketSessionUsernameOnChange,
   socketSubscriberPublishUser,
   socketSubscriberUnpublishUser,
+  socketPublisherUnpublishSession,
 } from './actions/';
 import { subscribeConnectionEvent } from './api';
 import {
@@ -24,7 +25,7 @@ import {
   TextField,
 } from './components';
 import reducer from './reducer';
-import saga from './saga';
+import saga from './sagas';
 import {
   selectSocketIsConnected,
   selectSocketIsHost,
@@ -133,7 +134,7 @@ WebsocketConnector.propTypes = {
   handleSubscribeSession: T.func.isRequired,
   // handleSubscribeSessionActions: T.func.isRequired,
   handleTopicOnChange: T.func.isRequired,
-  // handleUnpublishSession: T.func.isRequired,
+  handleUnpublishSession: T.func.isRequired,
   handleUnpublishUser: T.func.isRequired,
   handleUsernameOnChange: T.func.isRequired,
   sessionId: T.string,
@@ -163,6 +164,7 @@ const mapDispatchToProps = dispatch => ({
   handlePublishUser: () => dispatch(socketSubscriberPublishUser()),
   handleSubscribeSession: ({ sessionId }) =>
     dispatch(socketSubscriberSubscribeSession({ sessionId })),
+  handleUnpublishSession: () => dispatch(socketPublisherUnpublishSession()),
   handleUnpublishUser: () => dispatch(socketSubscriberUnpublishUser()),
 });
 
